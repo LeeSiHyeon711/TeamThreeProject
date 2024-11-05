@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>북마크 게시물 보기</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h2>북마크된 게시물</h2>
+
+    <!-- 에러 메시지 표시 부분 -->
+<!--    <div th:if="${errorMessage != null}">-->
+<!--        <p class="alert alert-danger" th:text="${errorMessage}"></p>-->
+<!--    </div>-->
+
+    <!-- 북마크 게시물 정보 표시 부분 -->
+    <div th:if="${bookmark != null}">
+        <div class="card">
+            <div class="card-header">
+                게시물 상세 정보
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">작성자: <span th:text="${bookmark.userNickname}"></span></h5>
+                <h6 class="card-subtitle mb-2 text-muted">제목: <span th:text="${bookmark.title}"></span></h6>
+                <p class="card-text">내용: <span th:text="${bookmark.content}"></span></p>
+                <p class="card-text">구매 링크:
+                    <a th:href="${bookmark.purchaseLink}" target="_blank" th:text="${bookmark.purchaseLink}"></a>
+                </p>
+                <p class="card-text">등록 날짜: <span th:text="${#temporals.format(bookmark.regDate, 'yyyy-MM-dd HH:mm:ss')}"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 뒤로 가기 버튼 -->
+    <div class="mt-3">
+        <a th:href="@{/myBookmarkList/{userId}(userId=${bookmark.userId})}" class="btn btn-primary">뒤로 가기</a>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

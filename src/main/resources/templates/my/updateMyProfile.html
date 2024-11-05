@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>프로필 수정</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body>
+<div class="container mt-4">
+    <h2 class="mb-4">프로필 수정</h2>
+
+    <form th:action="@{/profile/{userId}/updateMyProfile(userId=${userId})}" th:object="${user}" method="post">
+        <div class="mb-3">
+            <label for="nickname" class="form-label">닉네임</label>
+            <input type="text" id="nickname" class="form-control" th:field="*{nickname}" placeholder="닉네임">
+        </div>
+
+        <div class="mb-3">
+            <label for="email" class="form-label">이메일</label>
+            <input type="email" id="email" class="form-control" th:field="*{email}" placeholder="이메일">
+        </div>
+
+        <div class="mb-3">
+            <label for="profileImage" class="form-label">프로필 이미지</label>
+            <input type="text" id="profileImage" class="form-control" th:field="*{profileImage}" placeholder="이미지 URL">
+        </div>
+
+        <div class="mb-3">
+            <label for="introduce" class="form-label">소개</label>
+            <textarea id="introduce" class="form-control" th:field="*{introduce}" rows="3" placeholder="소개"></textarea>
+        </div>
+
+        <div class="text-end">
+            <button type="submit" class="btn btn-primary">수정 완료</button>
+            <a th:href="@{/profile/{userId}(userId=${userId})}" class="btn btn-secondary">취소</a>
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

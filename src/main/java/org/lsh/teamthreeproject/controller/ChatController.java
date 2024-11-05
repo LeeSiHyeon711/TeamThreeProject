@@ -27,10 +27,12 @@ import java.util.Optional;
 
 @Controller
 public class ChatController {
+
     public final UserRepository userRepository;
     public final ChatRoomService chatRoomService;
     public final ChatMessageService chatMessageService;
     public final UserService userService;
+
     @Autowired
     public ChatController(UserRepository userRepository, ChatRoomService chatRoomService, ChatMessageService chatMessageService, UserService userService) {
         this.userRepository = userRepository;

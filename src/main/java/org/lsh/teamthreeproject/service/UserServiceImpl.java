@@ -27,26 +27,24 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO login(UserDTO userDTO, HttpSession session) {
-        Optional<User> userOptional = userRepository.findByLoginId(userDTO.getLoginId());
-
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            if (user.getPassword().equals(userDTO.getPassword())) {
-                // UserDTO에 추가 정보를 설정하여 반환
-                UserDTO loggedInUserDTO = new UserDTO();
-                loggedInUserDTO.setLoginId(user.getLoginId());
-                loggedInUserDTO.setNickname(user.getNickname());
-                loggedInUserDTO.setEmail(user.getEmail());
-                loggedInUserDTO.setIntroduce(user.getIntroduce());
-                loggedInUserDTO.setProfileImagePath(user.getProfileImage()); // 이미지 경로 설정
-
-                // 세션에 사용자 정보 저장
-                session.setAttribute("loginUser", loggedInUserDTO);
-                session.setAttribute("nickname", loggedInUserDTO);
-                return loggedInUserDTO;
-            }
+        User user = userRepository.findByLoginId(userDTO.getLoginId()).orElse(null);
+        if (user == null || !user.getPassword().equals(userDTO.getPassword())) {
+            return null; // 로그인 실패 시 null 반환
         }
-        return null; // 로그인 실패 시 null 반환
+        // UserDTO를 빌더 패턴으로 생성
+        UserDTO loggedInUserDTO = UserDTO.builder()
+                .userId(user.getUserId())
+                .loginId(user.getLoginId())
+                .nickname(user.getNickname())
+                .email(user.getEmail())
+                .regDate(user.getRegDate())
+                .introduce(user.getIntroduce())
+                .profileImage(user.getProfileImage())
+                .profileImagePath(user.getProfileImage()) // 이미지 경로 설정
+                .build();
+        // 세션에 사용자 정보 저장
+        session.setAttribute("loginUser", loggedInUserDTO);
+        return loggedInUserDTO;
     }
 
     @Override
@@ -63,27 +61,28 @@ public class UserServiceImpl implements UserService {
         return userOptional;
     }
 
-    @Override
-    public String saveProfileImage(MultipartFile profileImage) throws IOException {
-        if (!profileImage.isEmpty()) {
-            String uploadDir = "D:\\upload";
-            String fileName = profileImage.getOriginalFilename();
-            Path uploadPath = Paths.get(uploadDir);
+    public String saveProfileImage(String profileImagePath) throws IOException {
+        if (profileImagePath != null && !profileImagePath.isEmpty()) {
+            Path originalPath = Paths.get(profileImagePath);
+            if (Files.exists(originalPath)) {
+                String uploadDir = "D:\\upload";
+                String fileName = originalPath.getFileName().toString();
+                Path uploadPath = Paths.get(uploadDir);
 
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
+                if (!Files.exists(uploadPath)) {
+                    Files.createDirectories(uploadPath);
+                }
 
-            try (InputStream inputStream = profileImage.getInputStream()) {
                 Path filePath = uploadPath.resolve(fileName);
-                Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(originalPath, filePath, StandardCopyOption.REPLACE_EXISTING);
                 return filePath.toString(); // 이미지 경로 반환
-            } catch (IOException e) {
-                throw new IOException("이미지 파일 저장 중 에러 발생: " + fileName, e);
+            } else {
+                throw new IOException("원본 파일이 존재하지 않습니다: " + profileImagePath);
             }
         }
         return null; // 파일이 없을 때
     }
+
 
 
     @Override
@@ -97,7 +96,7 @@ public class UserServiceImpl implements UserService {
         user.setIntroduce(userDTO.getIntroduce());
 
         // 프로필 이미지 저장 로직 추가
-        MultipartFile profileImage = userDTO.getProfileImage();
+        String profileImage = userDTO.getProfileImage();
         if (profileImage != null && !profileImage.isEmpty()) {
             try {
                 // 프로필 이미지를 서버에 저장하고 경로를 가져옴
@@ -111,6 +110,39 @@ public class UserServiceImpl implements UserService {
 
         // User 엔티티 저장
         userRepository.save(user);
+    }
+
+    @Override
+    public UserDTO updateUser(Long userId, UserDTO updatedUserDTO) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setNickname(updatedUserDTO.getNickname());
+        user.setIntroduce(updatedUserDTO.getIntroduce());
+        user.setProfileImage(updatedUserDTO.getProfileImage());
+        user.setEmail(updatedUserDTO.getEmail());
+        userRepository.save(user);
+        return convertToDTO(user);
+    }
+
+    @Override
+    public void deleteUser(Long userId) {
+        userRepository.deleteById(userId);
+    }
+
+    @Override
+    public Optional<UserDTO> readUser(Long userId) {
+        return userRepository.findById(userId).map(this::convertToDTO);
+    }
+
+    private UserDTO convertToDTO(User user) {
+        return UserDTO.builder()
+                .userId(user.getUserId())
+                .loginId(user.getLoginId())
+                .email(user.getEmail())
+                .profileImage(user.getProfileImage())
+                .nickname(user.getNickname())
+                .introduce(user.getIntroduce())
+                .build();
     }
 
 }

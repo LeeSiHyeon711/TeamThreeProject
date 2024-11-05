@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>프로필 조회</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body>
+<div class="container mt-4">
+    <h2 class="mb-4">내 프로필</h2>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-4 text-center">
+                    <img th:src="${user.profileImage != null ? user.profileImage : '/assets/default-profile.png'}"
+                         alt="프로필 이미지" class="img-fluid rounded-circle" style="max-width: 150px;">
+                </div>
+                <div class="col-md-8">
+                    <p><strong>아이디:</strong> <span th:text="${user.loginId}"></span></p>
+                    <p><strong>이메일:</strong> <span th:text="${user.email}"></span></p>
+<!--                    <p><strong>가입일:</strong> <span th:text="${#dates.format(user.regDate, 'yyyy-MM-dd HH:mm:ss')}"></span></p>-->
+                    <p>등록일: <span th:text="${#temporals.format(user.regDate, 'yyyy-MM-dd HH:mm:ss')}"></span></p>
+
+                    <p><strong>닉네임:</strong> <span th:text="${user.nickname}"></span></p>
+                    <p><strong>소개:</strong> <span th:text="${user.introduce}">소개 없음</span></p>
+                </div>
+            </div>
+            <div class="text-end">
+                <a th:href="@{/profile/{userId}/updateMyProfile(userId=${user.userId})}" class="btn btn-primary">수정</a>
+                <a th:href="@{/mypage}" class="btn btn-secondary">마이페이지</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

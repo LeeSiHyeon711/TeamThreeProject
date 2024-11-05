@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>내 북마크 목록</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body>
+<div class="container mt-4">
+    <h2>내 북마크 목록</h2>
+
+    <table class="table table-hover mt-3">
+        <thead>
+        <tr>
+            <th scope="col">번호</th>
+            <th scope="col">제목</th>
+            <th scope="col">작성자</th>
+            <th scope="col">작성 날짜</th>
+            <th scope="col">삭제</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="bookmark, iterStat : ${bookmarks}">
+            <th scope="row" th:text="${iterStat.count}">번호</th>
+
+            <!-- 제목 링크 - bookmark.board가 null이 아닌 경우에만 표시 -->
+            <td th:if="${bookmark.boardId != null}">
+                <a th:href="@{/myBoard/{userId}/{boardId}(userId=${bookmark.userId}, boardId=${bookmark.boardId})}"
+                   th:text="${bookmark.title}">제목</a>
+            </td>
+            <!-- board가 null인 경우를 대비하여 제목을 대체 텍스트로 표시 -->
+            <td th:if="${bookmark.boardId == null}">
+                <span>정보 없음</span>
+            </td>
+
+            <!-- 작성자 및 작성 날짜 - board가 null이 아닌 경우만 접근 -->
+            <td th:text="${bookmark.boardId != null ? bookmark.userNickname : '정보 없음'}">작성자</td>
+            <td th:text="${bookmark.boardId != null ? #temporals.format(bookmark.regDate, 'yyyy-MM-dd HH:mm') : ''}">작성 날짜</td>
+
+            <!-- 삭제 폼 -->
+            <td>
+                <form th:action="@{/bookmarkDelete/{userId}/{boardId}(userId=${bookmark.userId}, boardId=${bookmark.boardId})}"
+                      method="post" onsubmit="return confirm('북마크를 삭제하시겠습니까?');">
+                    <button type="submit" class="btn btn-danger btn-sm" th:disabled="${bookmark.boardId == null}">삭제</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="text-end">
+        <a th:href="@{/mypage}" class="btn btn-secondary">마이페이지</a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
