@@ -9,7 +9,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDateTime;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -36,4 +37,13 @@ public class ChatMessage {
     @Column(name = "sent_date", nullable = false)
     @CreationTimestamp
     private LocalDateTime sentDate;
+
+    @Override
+    public String toString() {
+        return "ChatMessage{" +
+                "messageId=" + messageId +
+                ", content='" + content + '\'' +
+                ", sender='" + sender + '\'' +
+                '}';
+    }
 }

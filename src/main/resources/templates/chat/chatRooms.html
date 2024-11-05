@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/basic}" lang="ko">
+
+<div layout:fragment="content">
+    <!-- 채팅방 목록 부분 -->
+    <div id="chatRoomSection">
+        <h2 class="text-center mb-4">채팅방 목록
+            <button id="createRoomButton" onclick="createRoom()" class="btn btn-success float-right">채팅방 생성</button>
+        </h2>
+        <!-- 로그인된 유저의 닉네임 표시 -->
+        <span th:if="${nickname != null}" th:text="${nickname} + '님, 환영합니다!'"></span>
+        <span th:if="${nickname == null}">로그인해주세요.</span>
+
+        <!-- 채팅방 목록을 Thymeleaf로 렌더링 -->
+        <div id="chatRoomList" class="list-group" style="min-height: 300px;">
+            <div th:each="room : ${chatRooms}" class="list-group-item d-flex justify-content-between align-items-center">
+                <!-- 채팅방 정보 표시 -->
+                <span th:text="'채팅방 ID: ' + ${room.chatRoomId} + ' | 이름: ' + ${room.name}"></span>
+
+                <!-- 삭제 버튼 클릭 시 호출되는 함수 -->
+                <button class="btn btn-danger btn-sm" th:onclick="|deleteRoom(${room.chatRoomId})|">삭제</button>
+
+                <!-- 채팅방 클릭 시 해당 방으로 이동하는 링크 -->
+                <a th:href="@{'/chat'(roomId=${room.chatRoomId}, nickname=${nickname})}" class="btn btn-primary">채팅방 입장</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div layout:fragment="script">
+    <script th:inline="javascript">
+        // 로그인 확인용 JavaScript (페이지 로드 시 실행)
+        window.addEventListener('load', function () {
+            if (![[${nickname != null ? 'true' : 'false'}]]) {
+                alert("로그인이 필요합니다.");
+                window.location.href = "/user/login";
+            }
+        });
+
+        // 채팅방 생성 함수
+        function createRoom() {
+            const roomName = prompt("새 채팅방 이름을 입력하세요:");
+            if (roomName) {
+                fetch('/api/chatroom/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name: roomName }) // JSON 형식으로 채팅방 이름 전달
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error("채팅방 생성에 실패했습니다.");
+                        }
+                        return response.json();
+                    })
+                    .then(newRoom => {
+                        console.log("새 채팅방이 생성되었습니다:", newRoom);
+                        // 방 생성 후 페이지를 새로고침하여 갱신된 목록을 확인
+                        window.location.reload();
+                    })
+                    .catch(error => {
+                        console.error("채팅방 생성 실패:", error);
+                    });
+            }
+        }
+        // 채팅방 삭제 함수
+        function deleteRoom(chatRoomId) {
+            if (confirm('정말 이 채팅방을 삭제하시겠습니까?')) {
+                fetch(`/api/chatroom/delete/${chatRoomId}`, {
+                    method: 'DELETE'
+                }).then(response => {
+                    if (response.ok) {
+                        alert('채팅방이 삭제되었습니다.');
+                        window.location.reload(); // 페이지 새로고침
+                    } else {
+                        alert('채팅방 삭제에 실패했습니다.');
+                    }
+                }).catch(error => {
+                    console.error('삭제 요청 중 에러 발생:', error);
+                    alert('삭제 요청에 실패했습니다.');
+                });
+            }
+        }
+
+    </script>
+</div>

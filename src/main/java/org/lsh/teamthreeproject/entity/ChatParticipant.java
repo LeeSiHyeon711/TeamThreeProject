@@ -11,13 +11,16 @@ import lombok.*;
 @NoArgsConstructor
 @Table(name ="chat_participant")
 public class ChatParticipant {
-    @Id
-    @ManyToOne
-    @JoinColumn(name = "chatroom_id", nullable = false)
-    private Board board;
+    @EmbeddedId
+    private ChatParticipantId id;
 
-    @Id
     @ManyToOne
+    @MapsId("chatRoomId") // 복합키의 chatRoomId와 매핑
+    @JoinColumn(name = "chatroom_id", nullable = false)
+    private ChatRoom chatRoom;
+
+    @ManyToOne
+    @MapsId("userId") // 복합키의 userId와 매핑
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 }
