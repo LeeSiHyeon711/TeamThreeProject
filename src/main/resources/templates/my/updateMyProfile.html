@@ -9,7 +9,7 @@
 <div class="container mt-4">
     <h2 class="mb-4">프로필 수정</h2>
 
-    <form th:action="@{/profile/{userId}/updateMyProfile(userId=${userId})}" th:object="${user}" method="post">
+    <form th:action="@{/profile/{userId}/updateMyProfile(userId=${userId})}" th:object="${user}" method="post" enctype="multipart/form-data">
         <div class="mb-3">
             <label for="nickname" class="form-label">닉네임</label>
             <input type="text" id="nickname" class="form-control" th:field="*{nickname}" placeholder="닉네임">
@@ -20,9 +20,18 @@
             <input type="email" id="email" class="form-control" th:field="*{email}" placeholder="이메일">
         </div>
 
+        <!-- 기존 프로필 이미지 미리보기 -->
         <div class="mb-3">
-            <label for="profileImage" class="form-label">프로필 이미지</label>
-            <input type="text" id="profileImage" class="form-control" th:field="*{profileImage}" placeholder="이미지 URL">
+            <label class="form-label">현재 프로필 이미지</label>
+            <div>
+                <img th:src="${user.profileImagePath != null ? user.profileImagePath : '/images/defaultImage.png'}" alt="프로필 이미지" class="img-fluid rounded-circle" style="max-width: 150px;">
+            </div>
+        </div>
+
+        <!-- 새로운 프로필 이미지 업로드 -->
+        <div class="mb-3">
+            <label for="profileImage" class="form-label">프로필 이미지 변경</label>
+            <input type="file" id="profileImage" class="form-control" th:field="*{profileImage}">
         </div>
 
         <div class="mb-3">

@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.*;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -31,16 +30,10 @@ public class UserServiceImpl implements UserService {
         if (user == null || !user.getPassword().equals(userDTO.getPassword())) {
             return null; // 로그인 실패 시 null 반환
         }
-        // UserDTO를 빌더 패턴으로 생성
-        UserDTO loggedInUserDTO = UserDTO.builder()
-                .userId(user.getUserId())
-                .loginId(user.getLoginId())
-                .nickname(user.getNickname())
-                .email(user.getEmail())
-                .regDate(user.getRegDate())
-                .introduce(user.getIntroduce())
-                .profileImagePath(user.getProfileImage()) // 이미지 경로 설정
-                .build();
+
+        // UserDTO 생성
+        UserDTO loggedInUserDTO = convertToDTO(user);
+
         // 세션에 사용자 정보 저장
         session.setAttribute("loginUser", loggedInUserDTO);
         return loggedInUserDTO;
@@ -48,42 +41,32 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Optional<User> findUserIdByNickname(String nickname) {
-        // 닉네임으로 유저를 UserRepository를 통해 찾기
         Optional<User> userOptional = userRepository.findByNickname(nickname);
-
-        // 찾은 유저 정보를 콘솔에 출력 (디버깅용)
         userOptional.ifPresent(user -> {
             System.out.println("찾은 유저 ID: " + user.getUserId());
         });
-
-        // 결과 반환
         return userOptional;
     }
 
     public String saveProfileImage(MultipartFile profileImage) throws IOException {
         if (profileImage != null && !profileImage.isEmpty()) {
-            // 업로드 디렉토리 설정
             String uploadDir = "D:\\upload";
-            String fileName = profileImage.getOriginalFilename(); // 업로드된 파일 이름 얻기
+            String fileName = profileImage.getOriginalFilename();
             Path uploadPath = Paths.get(uploadDir);
 
-            // 업로드 경로가 존재하지 않으면 디렉토리 생성
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
 
-            // 파일 저장 경로 설정
             Path filePath = uploadPath.resolve(fileName);
 
-            // 파일 저장
             try (InputStream inputStream = profileImage.getInputStream()) {
                 Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
             }
 
-            // 저장된 이미지 경로 반환
-            return filePath.toString();
+            return fileName; // 파일명만 반환
         }
-        return null; // 파일이 없을 때
+        return null;
     }
 
     @Override
@@ -107,39 +90,39 @@ public class UserServiceImpl implements UserService {
                 e.printStackTrace(); // 예외 처리
                 throw new RuntimeException("프로필 이미지 저장 중 에러 발생", e);
             }
+        } else {
+            // 사용자가 이미지를 업로드하지 않았을 경우 기본 이미지 경로 설정
+            user.setProfileImage("/images/noImage.jpg");
         }
+
         // User 엔티티 저장
         userRepository.save(user);
     }
+
 
     @Override
     public UserDTO updateUser(Long userId, UserDTO updatedUserDTO) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 닉네임, 소개, 이메일 업데이트
         user.setNickname(updatedUserDTO.getNickname());
         user.setIntroduce(updatedUserDTO.getIntroduce());
         user.setEmail(updatedUserDTO.getEmail());
 
-        // 프로필 이미지 업데이트
         MultipartFile profileImage = updatedUserDTO.getProfileImage();
         if (profileImage != null && !profileImage.isEmpty()) {
             try {
-                // 프로필 이미지를 저장하고 경로를 얻음
                 String imagePath = saveProfileImage(profileImage);
-                user.setProfileImage(imagePath); // 저장된 파일의 경로를 User 엔티티에 설정
+                user.setProfileImage(imagePath);
             } catch (IOException e) {
                 throw new RuntimeException("Failed to save profile image", e);
             }
         }
 
-        // 변경된 사용자 정보 저장
         userRepository.save(user);
 
         return convertToDTO(user);
     }
-
 
     @Override
     public void deleteUser(Long userId) {
@@ -152,15 +135,38 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserDTO convertToDTO(User user) {
+        String profileImagePath = user.getProfileImage();
+
+        // 경로 설정 수정
+        if (profileImagePath != null && !profileImagePath.isEmpty()) {
+            // "/upload/{파일명}" 형태로 경로 설정
+            profileImagePath = "/upload/" + Paths.get(profileImagePath).getFileName().toString();
+        } else {
+            profileImagePath = "/images/defaultImage.png"; // 기본 이미지 경로
+        }
+
         return UserDTO.builder()
                 .userId(user.getUserId())
                 .loginId(user.getLoginId())
                 .email(user.getEmail())
                 .regDate(user.getRegDate())
-                .profileImagePath(user.getProfileImage())
+                .profileImagePath(profileImagePath)  // 이미지 경로 설정
                 .nickname(user.getNickname())
                 .introduce(user.getIntroduce())
                 .build();
     }
 
+
+    private User convertToEntity(UserDTO userDTO) {
+        User user = new User();
+        user.setUserId(userDTO.getUserId());
+        user.setLoginId(userDTO.getLoginId());
+        user.setPassword(userDTO.getPassword());
+        user.setEmail(userDTO.getEmail());
+        user.setNickname(userDTO.getNickname());
+        user.setIntroduce(userDTO.getIntroduce());
+        user.setProfileImage(userDTO.getProfileImagePath()); // 파일명 저장
+
+        return user;
+    }
 }

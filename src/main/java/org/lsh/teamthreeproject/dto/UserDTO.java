@@ -25,4 +25,5 @@ public class UserDTO {
     private String introduce; // 사용자 소개
     private MultipartFile profileImage; // 업로드한 이미지 파일을 받기 위한 필드
     private String profileImagePath;    // 실제로 저장된 이미지의 경로
+
 }

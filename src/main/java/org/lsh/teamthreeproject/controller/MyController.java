@@ -56,6 +56,6 @@ public class MyController {
     public String deleteUser(@RequestParam Long userId) {
         log.info("delete");
         userService.deleteUser(userId);
-        return "redirect:/profile";
+        return "redirect:/user/login";
     }
 }

@@ -1,16 +1,21 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" lang="ko" layout:decorate="~{layout/basic}">
-<!-- 신고 관리 페이지 콘텐츠 -->
+<!-- 관리자 페이지 콘텐츠 -->
 <div layout:fragment="content">
-    <h2>신고 관리 페이지</h2>
-    <div class="filter-container">
-        <select id="reportTypeFilter" class="form-control w-50" onchange="fetchReports()">
+    <h1 class="text-center mt-4">관리자 페이지</h1>
+
+    <!-- 신고 관리 섹션 -->
+    <h2 class="text-center mt-4">신고 관리</h2>
+    <div class="filter-container text-center mb-4">
+        <select id="reportTypeFilter" class="form-control w-50 mx-auto" onchange="fetchReports()">
             <option value="">모든 유형</option>
             <option value="board">board</option>
             <option value="reply">reply</option>
             <option value="chatroom">chatroom</option>
         </select>
     </div>
+
+    <!-- 신고 테이블 -->
     <table class="table table-hover table-bordered table-striped mt-4 w-75 mx-auto">
         <thead class="thead-light">
         <tr>
@@ -29,11 +34,33 @@
         </tbody>
     </table>
 
+    <!-- 유저 관리 섹션 -->
+    <h3 class="mt-5 text-center">유저 관리</h3>
+    <div class="input-group mb-3 w-50 mx-auto">
+        <input type="text" id="userSearchInput" class="form-control" placeholder="유저 검색 (닉네임)" onkeyup="searchUsers()">
+    </div>
+
+    <!-- 유저 테이블 -->
+    <table class="table table-hover table-bordered table-striped w-75 mx-auto">
+        <thead class="thead-light">
+        <tr>
+            <th scope="col">유저 ID</th>
+            <th scope="col">로그인 ID</th>
+            <th scope="col">닉네임</th>
+            <th scope="col">이메일</th>
+            <th scope="col">삭제</th>
+        </tr>
+        </thead>
+        <tbody id="userTableBody">
+        <!-- 유저 목록은 JavaScript에서 동적으로 채워짐 -->
+        </tbody>
+    </table>
 </div>
 
 <!-- 스크립트 영역 -->
 <div layout:fragment="script">
     <script th:inline="javascript">
+        // 신고 목록 가져오기
         function fetchReports() {
             const selectedType = document.getElementById('reportTypeFilter').value;
             let url = '/reports/api/all';
@@ -41,12 +68,7 @@
                 url += `?type=${selectedType}`;
             }
             fetch(url)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok ' + response.statusText);
-                    }
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(data => {
                     const reportTableBody = document.getElementById('reportTableBody');
                     reportTableBody.innerHTML = '';
@@ -69,6 +91,8 @@
                 })
                 .catch(error => console.error('Error fetching report data:', error));
         }
+
+        // 신고 삭제
         function handleDelete(reportId) {
             if (confirm('정말로 이 신고를 삭제하시겠습니까?')) {
                 fetch(`/reports/${reportId}`, { method: 'DELETE' })
@@ -81,7 +105,52 @@
                     .catch(error => console.error('Error deleting report:', error));
             }
         }
-        window.onload = fetchReports;
+
+        // 유저 검색
+        function searchUsers() {
+            const searchQuery = document.getElementById('userSearchInput').value;
+            fetch(`/users/api/search?query=${searchQuery}`)
+                .then(response => response.json())
+                .then(users => {
+                    const userTableBody = document.getElementById('userTableBody');
+                    userTableBody.innerHTML = '';
+                    if (users.length === 0) {
+                        userTableBody.innerHTML = '<tr class="no-data"><td colspan="5">검색된 유저가 없습니다.</td></tr>';
+                    } else {
+                        users.forEach(user => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${user.userId}</td>
+                                <td>${user.loginId}</td>
+                                <td>${user.nickname}</td>
+                                <td>${user.email}</td>
+                                <td><button class="delete-button" onclick="deleteUser(${user.userId})">삭제</button></td>
+                            `;
+                            userTableBody.appendChild(row);
+                        });
+                    }
+                })
+                .catch(error => console.error('Error fetching user data:', error));
+        }
+
+        // 유저 삭제
+        function deleteUser(userId) {
+            if (confirm('정말로 이 유저를 삭제하시겠습니까?')) {
+                fetch(`/users/${userId}`, { method: 'DELETE' })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to delete user: ' + response.statusText);
+                        }
+                        searchUsers();
+                    })
+                    .catch(error => console.error('Error deleting user:', error));
+            }
+        }
+
+        window.onload = function() {
+            fetchReports();
+            searchUsers(); // 페이지 로드 시 유저 목록도 불러오기
+        };
     </script>
 </div>
 
@@ -91,4 +160,4 @@
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
+</html>

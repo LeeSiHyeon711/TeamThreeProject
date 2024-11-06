@@ -13,13 +13,13 @@
         <div class="card-body">
             <div class="row mb-3">
                 <div class="col-md-4 text-center">
-                    <img th:src="${user.profileImage != null ? user.profileImage : '/images/defaultImage.png'}"
+                    <img th:src="${user.profileImagePath != null ? user.profileImagePath : '/images/noImage.jpg'}"
                          alt="프로필 이미지" class="img-fluid rounded-circle" style="max-width: 150px;">
                 </div>
                 <div class="col-md-8">
                     <p><strong>아이디:</strong> <span th:text="${user.loginId}"></span></p>
                     <p><strong>이메일:</strong> <span th:text="${user.email}"></span></p>
-<!--                    <p><strong>가입일:</strong> <span th:text="${#dates.format(user.regDate, 'yyyy-MM-dd HH:mm:ss')}"></span></p>-->
+                    <!-- <p><strong>가입일:</strong> <span th:text="${#dates.format(user.regDate, 'yyyy-MM-dd HH:mm:ss')}"></span></p> -->
                     <p><strong>등록일:</strong> <span th:text="${#temporals.format(user.regDate, 'yyyy-MM-dd HH:mm:ss')}"></span></p>
                     <p><strong>닉네임:</strong> <span th:text="${user.nickname}"></span></p>
                     <p><strong>소개:</strong> <span th:text="${user.introduce}">소개 없음</span></p>
