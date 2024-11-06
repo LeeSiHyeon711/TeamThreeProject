@@ -39,7 +39,6 @@ public class UserServiceImpl implements UserService {
                 .email(user.getEmail())
                 .regDate(user.getRegDate())
                 .introduce(user.getIntroduce())
-                .profileImage(user.getProfileImage())
                 .profileImagePath(user.getProfileImage()) // 이미지 경로 설정
                 .build();
         // 세션에 사용자 정보 저장
@@ -61,29 +60,31 @@ public class UserServiceImpl implements UserService {
         return userOptional;
     }
 
-    public String saveProfileImage(String profileImagePath) throws IOException {
-        if (profileImagePath != null && !profileImagePath.isEmpty()) {
-            Path originalPath = Paths.get(profileImagePath);
-            if (Files.exists(originalPath)) {
-                String uploadDir = "D:\\upload";
-                String fileName = originalPath.getFileName().toString();
-                Path uploadPath = Paths.get(uploadDir);
+    public String saveProfileImage(MultipartFile profileImage) throws IOException {
+        if (profileImage != null && !profileImage.isEmpty()) {
+            // 업로드 디렉토리 설정
+            String uploadDir = "D:\\upload";
+            String fileName = profileImage.getOriginalFilename(); // 업로드된 파일 이름 얻기
+            Path uploadPath = Paths.get(uploadDir);
 
-                if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath);
-                }
-
-                Path filePath = uploadPath.resolve(fileName);
-                Files.copy(originalPath, filePath, StandardCopyOption.REPLACE_EXISTING);
-                return filePath.toString(); // 이미지 경로 반환
-            } else {
-                throw new IOException("원본 파일이 존재하지 않습니다: " + profileImagePath);
+            // 업로드 경로가 존재하지 않으면 디렉토리 생성
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
             }
+
+            // 파일 저장 경로 설정
+            Path filePath = uploadPath.resolve(fileName);
+
+            // 파일 저장
+            try (InputStream inputStream = profileImage.getInputStream()) {
+                Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            // 저장된 이미지 경로 반환
+            return filePath.toString();
         }
         return null; // 파일이 없을 때
     }
-
-
 
     @Override
     public void register(UserDTO userDTO) {
@@ -96,7 +97,7 @@ public class UserServiceImpl implements UserService {
         user.setIntroduce(userDTO.getIntroduce());
 
         // 프로필 이미지 저장 로직 추가
-        String profileImage = userDTO.getProfileImage();
+        MultipartFile profileImage = userDTO.getProfileImage();
         if (profileImage != null && !profileImage.isEmpty()) {
             try {
                 // 프로필 이미지를 서버에 저장하고 경로를 가져옴
@@ -107,7 +108,6 @@ public class UserServiceImpl implements UserService {
                 throw new RuntimeException("프로필 이미지 저장 중 에러 발생", e);
             }
         }
-
         // User 엔티티 저장
         userRepository.save(user);
     }
@@ -116,13 +116,30 @@ public class UserServiceImpl implements UserService {
     public UserDTO updateUser(Long userId, UserDTO updatedUserDTO) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 닉네임, 소개, 이메일 업데이트
         user.setNickname(updatedUserDTO.getNickname());
         user.setIntroduce(updatedUserDTO.getIntroduce());
-        user.setProfileImage(updatedUserDTO.getProfileImage());
         user.setEmail(updatedUserDTO.getEmail());
+
+        // 프로필 이미지 업데이트
+        MultipartFile profileImage = updatedUserDTO.getProfileImage();
+        if (profileImage != null && !profileImage.isEmpty()) {
+            try {
+                // 프로필 이미지를 저장하고 경로를 얻음
+                String imagePath = saveProfileImage(profileImage);
+                user.setProfileImage(imagePath); // 저장된 파일의 경로를 User 엔티티에 설정
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to save profile image", e);
+            }
+        }
+
+        // 변경된 사용자 정보 저장
         userRepository.save(user);
+
         return convertToDTO(user);
     }
+
 
     @Override
     public void deleteUser(Long userId) {
@@ -139,7 +156,8 @@ public class UserServiceImpl implements UserService {
                 .userId(user.getUserId())
                 .loginId(user.getLoginId())
                 .email(user.getEmail())
-                .profileImage(user.getProfileImage())
+                .regDate(user.getRegDate())
+                .profileImagePath(user.getProfileImage())
                 .nickname(user.getNickname())
                 .introduce(user.getIntroduce())
                 .build();

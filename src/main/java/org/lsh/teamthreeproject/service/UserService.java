@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface UserService {
     UserDTO login(UserDTO userDTO, HttpSession session);
     Optional<User> findUserIdByNickname(@Param("nickname") String nickname);
-    String saveProfileImage(String profileImage) throws IOException;
+    String saveProfileImage(MultipartFile profileImage) throws IOException;
     void register(UserDTO userDTO);
     UserDTO updateUser(Long userId, UserDTO updatedUserDTO);
     void deleteUser(Long userId);
