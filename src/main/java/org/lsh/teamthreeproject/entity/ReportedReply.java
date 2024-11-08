@@ -20,11 +20,11 @@ public class ReportedReply {
     @Column(name = "report_id")
     private long reportId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "replyId", nullable = false)
     private Reply reply;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reportedBy", nullable = false)
     private User reportedBy;
 

@@ -5,8 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Builder
@@ -22,4 +25,7 @@ public class BoardDTO {
     private long visitCount = 0;
     private long userId;
     private String userLoginId;
+    private List<String> fileNames = new ArrayList<>(); // 파일 이름 저장용
+    private List<MultipartFile> files = new ArrayList<>(); // 업로드된 파일 저장용
+    private List<BoardImageDTO> images = new ArrayList<>(); // 이미지 정보 담을 리스트
 }

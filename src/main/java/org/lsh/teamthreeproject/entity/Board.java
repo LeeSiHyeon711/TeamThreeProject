@@ -7,6 +7,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
@@ -20,7 +22,7 @@ public class Board {
     @Column(name = "board_id")
     private long boardId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     // 외래 키 설정
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -42,4 +44,36 @@ public class Board {
     @Column(name = "visit_count", nullable = false)
     @ColumnDefault("0")
     private long visitCount;
+
+    // 자식 엔터티 Cascade
+    @OneToMany(mappedBy = "board", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<BoardImage> boardImages;
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<BoardLike> boardLikes;
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ReportedBoard> reportedBoards;
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Reply> replies;
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<BookMark> bookmarks;
+
+    public void UpdateVisitCount() {
+        this.visitCount++;
+    }
+
+    public void change(String title, String content){
+        this.title = title;
+        this.content = content;
+    }
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<BoardImage> imageSet;
+
+    public void clearImages() {
+        this.boardImages.clear();
+    }
 }

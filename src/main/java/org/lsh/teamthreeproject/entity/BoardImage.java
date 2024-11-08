@@ -15,10 +15,11 @@ public class BoardImage {
     @Column(name = "image_id")
     private long imageId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "boardId", nullable = false)
     private Board board;
 
     @Column(name = "image_url", length = 500, nullable = false)
     private String imageUrl;
+
 }

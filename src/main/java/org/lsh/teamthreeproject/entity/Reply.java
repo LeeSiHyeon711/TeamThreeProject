@@ -7,6 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Data
@@ -20,11 +21,11 @@ public class Reply {
     @Column(name = "reply_id")
     private long replyId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "boardId", nullable = false)
     private Board board;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId", nullable = false)
     private User user;
 
@@ -39,4 +40,11 @@ public class Reply {
     @Column(name = "is_deleted", nullable = false)
     @ColumnDefault("0")
     private Boolean isDeleted;
+
+    // 자식 엔터티 Cascade
+    @OneToMany(mappedBy = "reply", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ReplyLike> replyLikes;
+
+    @OneToMany(mappedBy = "reply", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ReportedReply> reportedReplies;
 }

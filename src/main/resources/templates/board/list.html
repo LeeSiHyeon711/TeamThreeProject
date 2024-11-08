@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/basic}" lang="ko">
+
+<div layout:fragment="content">
+    <div class="container">
+        <div class="row">
+            <!-- 게시글 카드 반복 -->
+            <div th:each="board : ${boardList}" class="col-md-4 mb-4">
+                <div class="card text-bg-dark mb-3">
+                    <!-- fileNames 리스트가 null이 아니고, 빈 리스트가 아닐 때만 이미지 표시 -->
+                    <th:block th:if="${board.fileNames != null and board.fileNames.size() > 0}">
+                        <!-- 이미지 경로를 서버에서 제공하도록 설정 -->
+                        <img th:src="@{/upload/{fileName}(fileName=${board.fileNames[0]})}" class="card-img-top" alt="이미지">
+                    </th:block>
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="${board.title}">게시글 제목</h5>
+                        <p class="card-text">게시글 ID: <span th:text="${board.boardId}"></span></p>
+                        <!-- 좋아요 및 북마크 버튼 -->
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-link p-0" onclick="toggleIcon(this, 'like')">
+                                <img th:src="@{/images/like-icon.png}" class="icon" alt="좋아요" style="width: 24px; height: 24px;">
+                            </button>
+                            <button type="button" class="btn btn-link p-0 ml-3" onclick="toggleIcon(this, 'bookmark')">
+                                <img th:src="@{/images/bookmark-icon.png}" class="icon" alt="북마크" style="width: 24px; height: 24px;">
+                            </button>
+                        </div>
+                        <a th:href="@{'/read/' + ${board.boardId}}" class="btn btn-primary">Read More</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+<script>
+    // 각 페이지에서 필요로 하는 자바스크립트 함수 추가
+    function toggleIcon(button, type) {
+        const img = button.querySelector('img');
+
+        if (type === 'like') {
+            if (img.src.includes('like-icon.png')) {
+                img.src = '/images/like-icon-checked.png';
+            } else {
+                img.src = '/images/like-icon.png';
+            }
+        } else if (type === 'bookmark') {
+            if (img.src.includes('bookmark-icon.png')) {
+                img.src = '/images/bookmark-icon-checked.png';
+            } else {
+                img.src = '/images/bookmark-icon.png';
+            }
+        }
+    }
+</script>
+</html>

@@ -30,13 +30,15 @@ public class ChatRoom {
     @CreationTimestamp
     private LocalDateTime createdDate;
 
-    // 추가된 부분: ChatMessage와의 연관관계 설정
-    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<ChatMessage> messages;
+    // 자식 엔터티 Cascade
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch =FetchType.LAZY)
+    private List<ReportedChatRoom> reportedChatRooms;
 
-    // 추가된 부분: ChatParticipant와의 연관관계 설정
-    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ChatParticipant> participants;
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch =FetchType.LAZY)
+    private List<ChatParticipant> chatParticipants;
+
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch =FetchType.LAZY)
+    private List<ChatMessage> chatMessages;
 
     @Override
     public String toString() {

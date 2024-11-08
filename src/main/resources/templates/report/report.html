@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" lang="ko" layout:decorate="~{layout/basic}">
 <!-- 관리자 페이지 콘텐츠 -->
-<div layout:fragment="content">
+<div layout:decorate="content">
     <h1 class="text-center mt-4">관리자 페이지</h1>
 
     <!-- 신고 관리 섹션 -->
@@ -58,7 +58,7 @@
 </div>
 
 <!-- 스크립트 영역 -->
-<div layout:fragment="script">
+<div layout:decorate="script">
     <script th:inline="javascript">
         // 신고 목록 가져오기
         function fetchReports() {
