@@ -5,10 +5,13 @@ import lombok.extern.log4j.Log4j2;
 import org.lsh.teamthreeproject.dto.UserDTO;
 import org.lsh.teamthreeproject.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Log4j2
@@ -69,5 +72,26 @@ public class UserController {
     public String logout(HttpSession session) {
         session.invalidate(); // 세션 무효화 (모든 세션 데이터 삭제)
         return "redirect:/user/login"; // 로그아웃 후 로그인 페이지로 리다이렉트
+    }
+
+    // 기본 이미지로 변경하는 메서드
+    @PostMapping("/profile/{userId}/resetProfileImage")
+    @ResponseBody  // AJAX 요청에 응답할 때 사용
+    public ResponseEntity<?> resetProfileImage(@PathVariable("userId") Long userId, HttpSession session) {
+        try {
+            // 기본 이미지 경로로 설정하는 메서드 호출
+            userService.setDefaultProfileImage(userId);
+
+            // 세션에 있는 사용자 정보 업데이트
+            UserDTO updatedUserDTO = userService.readUser(userId).orElseThrow();
+            session.setAttribute("user", updatedUserDTO);
+
+            // 성공 시 응답 반환
+            return ResponseEntity.ok().body(Map.of("success", true));
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 실패 시 응답 반환
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false));
+        }
     }
 }

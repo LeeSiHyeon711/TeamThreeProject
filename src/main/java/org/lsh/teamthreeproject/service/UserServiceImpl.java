@@ -31,10 +31,10 @@ public class UserServiceImpl implements UserService {
             return null; // 로그인 실패 시 null 반환
         }
 
-        // UserDTO 생성
+// UserDTO 생성
         UserDTO loggedInUserDTO = convertToDTO(user);
 
-        // 세션에 사용자 정보 저장
+// 세션에 사용자 정보 저장
         session.setAttribute("loginUser", loggedInUserDTO);
         return loggedInUserDTO;
     }
@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
 
     public String saveProfileImage(MultipartFile profileImage) throws IOException {
         if (profileImage != null && !profileImage.isEmpty()) {
-            String uploadDir = "D:\\upload";
+            String uploadDir = "c:\\upload";
             String fileName = profileImage.getOriginalFilename();
             Path uploadPath = Paths.get(uploadDir);
 
@@ -137,9 +137,9 @@ public class UserServiceImpl implements UserService {
     private UserDTO convertToDTO(User user) {
         String profileImagePath = user.getProfileImage();
 
-        // 경로 설정 수정
+// 경로 설정 수정
         if (profileImagePath != null && !profileImagePath.isEmpty()) {
-            // "/upload/{파일명}" 형태로 경로 설정
+// "/upload/{파일명}" 형태로 경로 설정
             profileImagePath = "/upload/" + Paths.get(profileImagePath).getFileName().toString();
         } else {
             profileImagePath = "/images/defaultImage.png"; // 기본 이미지 경로
@@ -169,4 +169,39 @@ public class UserServiceImpl implements UserService {
 
         return user;
     }
+    @Override
+    public void setDefaultProfileImage(Long userId) {
+// 사용자 조회
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+
+        // 프로필 이미지 경로를 기본 이미지로 변경
+        user.setProfileImage("/upload/noImage.jpg");
+        // 기본 이미지 파일 경로와 업로드 경로 설정
+        Path defaultImagePath = Paths.get("src/main/resources/static/images/noImage.jpg"); // 기본 이미지 위치
+        Path uploadDir = Paths.get("c:/upload");
+        Path uploadImagePath = uploadDir.resolve("noImage.jpg"); // 업로드 폴더에 저장될 경로
+
+        try {
+            // 업로드 폴더가 없으면 생성
+            if (!Files.exists(uploadDir)) {
+                Files.createDirectories(uploadDir);
+            }
+
+            // DB에 저장된 사용자 정보 업데이트
+            userRepository.save(user);
+            // 기본 이미지를 upload 폴더로 복사
+            Files.copy(defaultImagePath, uploadImagePath, StandardCopyOption.REPLACE_EXISTING);
+
+            // 사용자 프로필 이미지를 기본 이미지 경로로 업데이트
+            user.setProfileImage("/upload/noImage.jpg");
+
+            // DB에 저장된 사용자 정보 업데이트
+            userRepository.save(user);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("기본 이미지 복사 중 에러 발생", e);
+        }
+    }
+
+
 }

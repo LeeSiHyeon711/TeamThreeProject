@@ -22,7 +22,7 @@ public class Board {
     @Column(name = "board_id")
     private long boardId;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     // 외래 키 설정
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

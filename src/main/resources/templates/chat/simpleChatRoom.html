@@ -44,10 +44,7 @@
       </div>
     </div>
   </div>
-</div>
-
-<div layout:decorate="script">
-  <script th:inline="javascript">
+  <script>
     var stompClient = null;
     var nickname = new URLSearchParams(window.location.search).get('nickname');
     var chatRoomId = new URLSearchParams(window.location.search).get('roomId');
@@ -189,3 +186,4 @@
     window.onload = connect;
   </script>
 </div>
+

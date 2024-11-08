@@ -24,7 +24,7 @@
             </div>
             <div class="form-group mt-3">
                 <label for="files">File Attachments</label>
-                <input type="file" class="form-control-file" id="files" th:field="*{files}" multiple onchange="previewFiles(this)">
+                <input type="file" class="form-control-file" id="files" th:field="*{files}" multiple onchange="previewFiles(this)" required>
                 <div id="filePreview" class="d-flex mt-3 flex-wrap"></div>
             </div>
 
