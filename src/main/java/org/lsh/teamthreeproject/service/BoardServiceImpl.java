@@ -107,33 +107,6 @@ public class BoardServiceImpl implements BoardService {
         return boardDTO;
     }
 
-//    @Override
-//    public void modify(BoardDTO boardDTO) {
-//        Optional<Board> result = boardRepository.findById(boardDTO.getBoardId());
-//        Board board = result.orElseThrow();
-//
-//        // 게시물 제목과 내용 수정 (작성자 변경 불가)
-//        board.change(boardDTO.getTitle(), boardDTO.getContent());
-//
-//        // 기존 이미지들 삭제
-//        board.clearImages();
-//
-//        // 새로운 이미지를 추가
-//        if (boardDTO.getFileNames() != null) {
-//            for (String fileName : boardDTO.getFileNames()) {
-//                String[] arr = fileName.split("_");
-//                // 새로운 BoardImage 엔티티 생성
-//                BoardImage newImage = BoardImage.builder()
-//                        .board(board)
-//                        .imageUrl(arr[1])
-//                        .build();
-//                board.getBoardImages().add(newImage); // Board 엔티티에 이미지 추가
-//            }
-//        }
-//        boardRepository.save(board); // 변경 사항 저장
-//    }
-
-
     @Override
     public void remove(Long boardId) {
         boardRepository.deleteById(boardId);
@@ -288,15 +261,40 @@ public class BoardServiceImpl implements BoardService {
         boardRepository.save(existingBoard);
     }
 
+    @Override
+    public List<BoardDTO> getPopularBoards() {
+        LocalDateTime fourWeeksAgo = LocalDateTime.now().minusWeeks(4);
+        return boardRepository.findTop10ByPopularity(fourWeeksAgo)
+                .stream()
+                .map(this::convertEntityToDTO)
+                .collect(Collectors.toList());
+    }
+
     private BoardDTO convertEntityToDTO(Board board) {
+        // 파일 이름 리스트 생성
+        List<String> fileNames = board.getBoardImages().stream()
+                .map(BoardImage::getImageUrl)
+                .collect(Collectors.toList());
+
+        // 이미지 DTO 리스트 생성
+        List<BoardImageDTO> images = board.getBoardImages().stream()
+                .map(image -> BoardImageDTO.builder()
+                        .boardId(board.getBoardId())
+                        .imageUrl(image.getImageUrl())
+                        .build())
+                .collect(Collectors.toList());
+
         return BoardDTO.builder()
                 .boardId(board.getBoardId())
                 .title(board.getTitle())
                 .content(board.getContent())
                 .purchaseLink(board.getPurchaseLink())
                 .regDate(board.getRegDate())
+                .visitCount(board.getVisitCount())
                 .userId(board.getUser().getUserId())
                 .userLoginId(board.getUser().getLoginId())
+                .fileNames(fileNames) // 파일 이름 리스트 추가
+                .images(images)       // 이미지 DTO 리스트 추가
                 .build();
     }
 

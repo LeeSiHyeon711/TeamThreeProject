@@ -27,6 +27,8 @@ public interface BoardService {
     List<BoardDTO> findAllByOrderByRegDateDesc();
     void saveBoardWithImage(BoardDTO boardDTO);
     void update(BoardDTO boardDTO, HttpServletRequest request);
+    List<BoardDTO> getPopularBoards();
+
 
     default Board dtoToEntity(BoardDTO boardDTO, UserDTO userDTO) {
         // User 객체를 생성하여 필요한 정보를 설정

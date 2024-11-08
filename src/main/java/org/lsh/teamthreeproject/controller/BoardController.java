@@ -156,57 +156,6 @@ public class BoardController {
         return "board/read";  // 템플릿 이름이 "board/read"라면 이렇게 명시
     }
 
-
-//    @PostMapping("/modify")
-//    public String modify(UploadFileDTO uploadFileDTO,
-//                         @Valid BoardDTO boardDTO,
-//                         BindingResult bindingResult,
-//                         RedirectAttributes redirectAttributes){
-//
-//        log.info("board modify post......." + boardDTO);
-//
-//        List<String> strFileNames=null;
-//        if(uploadFileDTO.getFiles()!=null &&
-//                !uploadFileDTO.getFiles().get(0).getOriginalFilename().equals("") ){
-//
-//            List<String> fileNames = boardDTO.getFileNames();
-//
-//            if(fileNames != null && fileNames.size() > 0){
-//                removeFile(fileNames);
-//            }
-//
-//            strFileNames=fileUpload(uploadFileDTO);
-//            log.info("!!!!!!!!!!!!!!!!"+strFileNames.size());
-//            boardDTO.setFileNames(strFileNames);
-//        }
-//
-//        if(bindingResult.hasErrors()) {
-//            log.info("has errors.......");
-//            redirectAttributes.addFlashAttribute("errors", bindingResult.getAllErrors() );
-//            redirectAttributes.addAttribute("boardId", boardDTO.getBoardId());
-//            return "redirect:/board/modify";
-//        }
-//
-//        boardService.modify(boardDTO);
-//        redirectAttributes.addFlashAttribute("result", "modified");
-//        redirectAttributes.addAttribute("boardId", boardDTO.getBoardId());
-//        return "redirect:/board/read";
-//    }
-//    @PostMapping("/remove")
-//    public String remove(BoardDTO boardDTO, RedirectAttributes redirectAttributes) {
-//        log.info("remove post.. " + boardDTO);
-//
-//        List<String> fileNames=boardDTO.getFileNames();
-//        if(fileNames !=null && fileNames.size()>0) {
-//            log.info("remove controller"+fileNames.size());
-//            removeFile(fileNames);
-//        }
-//        boardService.remove(boardDTO.getBoardId());
-//
-//        redirectAttributes.addFlashAttribute("result", "removed");
-//        return "redirect:/board/list";
-//    }
-
     private List<String> fileUpload(UploadFileDTO uploadFileDTO){
 
         List<String> list = new ArrayList<>();

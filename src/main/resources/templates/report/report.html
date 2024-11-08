@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" lang="ko" layout:decorate="~{layout/basic}">
 <!-- 관리자 페이지 콘텐츠 -->
-<div layout:decorate="content">
+<div layout:fragment="content">
     <h1 class="text-center mt-4">관리자 페이지</h1>
 
     <!-- 신고 관리 섹션 -->
     <h2 class="text-center mt-4">신고 관리</h2>
     <div class="filter-container text-center mb-4">
-        <select id="reportTypeFilter" class="form-control w-50 mx-auto" onchange="fetchReports()">
+        <select id="reportTypeFilter" class="form-control mx-auto" onchange="fetchReports()">
             <option value="">모든 유형</option>
             <option value="board">board</option>
             <option value="reply">reply</option>
@@ -16,7 +16,7 @@
     </div>
 
     <!-- 신고 테이블 -->
-    <table class="table table-hover table-bordered table-striped mt-4 w-75 mx-auto">
+    <table class="table table-hover table-bordered table-striped mt-4 mx-auto">
         <thead class="thead-light">
         <tr>
             <th scope="col">신고 ID</th>
@@ -36,12 +36,12 @@
 
     <!-- 유저 관리 섹션 -->
     <h3 class="mt-5 text-center">유저 관리</h3>
-    <div class="input-group mb-3 w-50 mx-auto">
+    <div class="input-group mb-3 mx-auto">
         <input type="text" id="userSearchInput" class="form-control" placeholder="유저 검색 (닉네임)" onkeyup="searchUsers()">
     </div>
 
     <!-- 유저 테이블 -->
-    <table class="table table-hover table-bordered table-striped w-75 mx-auto">
+    <table class="table table-hover table-bordered table-striped mx-auto">
         <thead class="thead-light">
         <tr>
             <th scope="col">유저 ID</th>
@@ -55,11 +55,8 @@
         <!-- 유저 목록은 JavaScript에서 동적으로 채워짐 -->
         </tbody>
     </table>
-</div>
-
-<!-- 스크립트 영역 -->
-<div layout:decorate="script">
-    <script th:inline="javascript">
+    <!-- 스크립트 영역 -->
+    <script>
         // 신고 목록 가져오기
         function fetchReports() {
             const selectedType = document.getElementById('reportTypeFilter').value;
@@ -78,13 +75,13 @@
                         data.forEach(report => {
                             const row = document.createElement('tr');
                             row.innerHTML = `
-                                <td>${report.reportId}</td>
-                                <td>${report.type}</td>
-                                <td>${report.reportedUserName}</td>
-                                <td>${report.reason}</td>
-                                <td>${new Date(report.reportedDate).toLocaleString()}</td>
-                                <td><button class="delete-button" onclick="handleDelete(${report.reportId})">삭제</button></td>
-                            `;
+                            <td>${report.reportId}</td>
+                            <td>${report.type}</td>
+                            <td>${report.reportedUserName}</td>
+                            <td>${report.reason}</td>
+                            <td>${new Date(report.reportedDate).toLocaleString()}</td>
+                            <td><button class="delete-button" onclick="handleDelete(${report.reportId})">삭제</button></td>
+                        `;
                             reportTableBody.appendChild(row);
                         });
                     }
@@ -120,12 +117,12 @@
                         users.forEach(user => {
                             const row = document.createElement('tr');
                             row.innerHTML = `
-                                <td>${user.userId}</td>
-                                <td>${user.loginId}</td>
-                                <td>${user.nickname}</td>
-                                <td>${user.email}</td>
-                                <td><button class="delete-button" onclick="deleteUser(${user.userId})">삭제</button></td>
-                            `;
+                            <td>${user.userId}</td>
+                            <td>${user.loginId}</td>
+                            <td>${user.nickname}</td>
+                            <td>${user.email}</td>
+                            <td><button class="delete-button" onclick="deleteUser(${user.userId})">삭제</button></td>
+                        `;
                             userTableBody.appendChild(row);
                         });
                     }

@@ -63,10 +63,27 @@
                     인기 게시물
                 </div>
                 <div class="card-body">
-                    <a href="#"><img src="https://via.placeholder.com/150" alt="이미지" class="img-fluid"></a>
-                    <div class="mt-2">
-                        <button class="btn btn-secondary btn-sm">&lt;</button>
-                        <button class="btn btn-secondary btn-sm">&gt;</button>
+                    <div class="container">
+                        <div class="row">
+                            <!-- 인기 게시물 반복문 -->
+                            <th:block th:each="board, stat : ${popularBoards}">
+                                <div class="col-6 mb-3">
+                                    <!-- fileNames 리스트가 null이 아니고, 빈 리스트가 아닐 때만 이미지 표시 -->
+                                    <th:block th:if="${board.fileNames != null and board.fileNames.size() > 0}">
+                                        <!-- 이미지 경로를 서버에서 제공하도록 설정 -->
+                                        <img th:src="@{/upload/{fileName}(fileName=${board.fileNames[0]})}" class="card-img-top" alt="이미지">
+                                    </th:block>                                    <!-- 순위와 제목을 한 줄에 표시 -->
+                                    <p class="mt-2">
+                                        <span th:text="${stat.index + 1} + '위 '"></span>
+                                        <a th:href="@{/read/{boardId}(boardId=${board.boardId})}" th:text="${board.title}">게시물 제목</a>
+                                    </p>
+                                </div>
+                                <!-- 두 개의 열을 출력한 후에 새로운 행을 시작 -->
+                                <th:block th:if="${stat.index % 2 == 1}">
+                        </div><div class="row mt-3">
+                        </th:block>
+                        </th:block>
+                    </div>
                     </div>
                 </div>
             </div>
