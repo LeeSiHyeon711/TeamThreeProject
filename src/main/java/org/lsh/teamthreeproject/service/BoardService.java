@@ -28,7 +28,7 @@ public interface BoardService {
     void saveBoardWithImage(BoardDTO boardDTO);
     void update(BoardDTO boardDTO, HttpServletRequest request);
     List<BoardDTO> getPopularBoards();
-
+    Optional<BoardDTO> findById(Long boardId);
 
     default Board dtoToEntity(BoardDTO boardDTO, UserDTO userDTO) {
         // User 객체를 생성하여 필요한 정보를 설정
@@ -78,6 +78,4 @@ public interface BoardService {
                 .fileNames(imageUrls) // 이미지 URL 리스트 설정 추가
                 .build();
     }
-
-
 }

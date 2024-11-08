@@ -270,6 +270,11 @@ public class BoardServiceImpl implements BoardService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public Optional<BoardDTO> findById(Long boardId) {
+        return boardRepository.findById(boardId).map(this::convertEntityToDTO);
+    }
+    
     private BoardDTO convertEntityToDTO(Board board) {
         // 파일 이름 리스트 생성
         List<String> fileNames = board.getBoardImages().stream()

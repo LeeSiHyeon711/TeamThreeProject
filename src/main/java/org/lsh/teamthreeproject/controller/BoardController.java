@@ -7,10 +7,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import net.coobird.thumbnailator.Thumbnailator;
 import org.lsh.teamthreeproject.dto.BoardDTO;
+import org.lsh.teamthreeproject.dto.ReplyDTO;
 import org.lsh.teamthreeproject.dto.UserDTO;
 import org.lsh.teamthreeproject.dto.upload.UploadFileDTO;
 import org.lsh.teamthreeproject.entity.User;
 import org.lsh.teamthreeproject.service.BoardService;
+import org.lsh.teamthreeproject.service.ReplyService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -42,6 +44,7 @@ public class BoardController {
     private String uploadPath;
 
     private final BoardService boardService;
+    private final ReplyService replyService;
 
     // 내가 쓴 게시물 하나 조회
     @GetMapping("/myBoard/{userId}/{boardId}")
@@ -153,8 +156,13 @@ public class BoardController {
             model.addAttribute("loggedInUser", loggedInUser);
         }
 
+        // 댓글 리스트 추가
+        List<ReplyDTO> replies = replyService.readRepliesByBoardId(boardId);
+        model.addAttribute("replies", replies);
+
         return "board/read";  // 템플릿 이름이 "board/read"라면 이렇게 명시
     }
+
 
     private List<String> fileUpload(UploadFileDTO uploadFileDTO){
 

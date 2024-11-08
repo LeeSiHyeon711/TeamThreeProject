@@ -18,4 +18,5 @@ public class ReplyDTO {
     private Boolean isDeleted = false;
     private Long boardId;
     private Long userId;
+    private String replyer; // 작성자 닉네임 추가
 }

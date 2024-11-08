@@ -1,5 +1,6 @@
 package org.lsh.teamthreeproject.repository;
 
+import org.lsh.teamthreeproject.entity.Board;
 import org.lsh.teamthreeproject.entity.Reply;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -11,4 +12,6 @@ import java.util.Optional;
 public interface ReplyRepository extends JpaRepository<Reply, Long> {
     Optional<Reply> findById(Long id);
     List<Reply> findByUserUserId(Long userId);
+    List<Reply> findByBoardBoardId(Long boardId);
+    List<Reply> findByBoard(Board board);
 }
