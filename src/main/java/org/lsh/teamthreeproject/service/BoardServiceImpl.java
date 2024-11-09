@@ -151,6 +151,7 @@ public class BoardServiceImpl implements BoardService {
                 .user(userRepository.findById(boardDTO.getUserId()).orElseThrow())
                 .title(boardDTO.getTitle())
                 .content(boardDTO.getContent())
+                .purchaseLink(boardDTO.getPurchaseLink())
                 .regDate(LocalDateTime.now())
                 .visitCount(0L)
                 .build();
@@ -274,7 +275,16 @@ public class BoardServiceImpl implements BoardService {
     public Optional<BoardDTO> findById(Long boardId) {
         return boardRepository.findById(boardId).map(this::convertEntityToDTO);
     }
-    
+
+    @Override
+    public List<BoardDTO> findBoardsByUserId(long userId) {
+        // userId에 해당하는 게시물 목록을 데이터베이스에서 조회
+        return boardRepository.findByUser_UserId(userId)
+                .stream()
+                .map(board -> convertEntityToDTO(board)) // 엔티티 -> DTO 변환
+                .collect(Collectors.toList());
+    }
+
     private BoardDTO convertEntityToDTO(Board board) {
         // 파일 이름 리스트 생성
         List<String> fileNames = board.getBoardImages().stream()

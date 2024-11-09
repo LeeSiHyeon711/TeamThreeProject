@@ -45,7 +45,7 @@
                             <li class="nav-item"><a class="nav-link" href="/register">글쓰기</a></li> <!-- 글쓰기 폼 이동 -->
                             <li class="nav-item"><a class="nav-link" href="/chatList">채팅방</a></li> <!-- 채팅방 리스트 이동 -->
                             <li class="nav-item"><a class="nav-link" href="/mypage">마이페이지</a></li>
-                            <li class="nav-item"><a class="nav-link" href="/reports/all">신고페이지</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/reports/all">관리자페이지</a></li>
                             <li class="nav-item"><a class="nav-link" href="/user/logout">로그아웃</a></li> <!-- 세션에서 유저정보 삭제 -->
                         </ul>
                     </div>
@@ -75,7 +75,7 @@
                                     </th:block>                                    <!-- 순위와 제목을 한 줄에 표시 -->
                                     <p class="mt-2">
                                         <span th:text="${stat.index + 1} + '위 '"></span>
-                                        <a th:href="@{/read/{boardId}(boardId=${board.boardId})}" th:text="${board.title}">게시물 제목</a>
+                                        <a th:href="@{/read/{boardId}(boardId=${board.boardId})}" th:text="${board.title}" style="font-size: 14px;">게시물 제목</a>
                                     </p>
                                 </div>
                                 <!-- 두 개의 열을 출력한 후에 새로운 행을 시작 -->

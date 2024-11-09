@@ -1,5 +1,6 @@
 package org.lsh.teamthreeproject.service;
 
+import lombok.extern.log4j.Log4j2;
 import org.hibernate.Hibernate;
 import org.lsh.teamthreeproject.dto.BookmarkDTO;
 import org.lsh.teamthreeproject.entity.BookMark;
@@ -7,12 +8,14 @@ import org.lsh.teamthreeproject.entity.BookMarkId;
 import org.lsh.teamthreeproject.repository.BookmarkRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Log4j2
 public class BookMarkServiceImpl implements BookMarkService {
     private final BookmarkRepository bookmarkRepository;
     @Autowired
@@ -38,7 +41,10 @@ public class BookMarkServiceImpl implements BookMarkService {
     }
 
     @Override
+    @Transactional
     public void deleteBookMark(BookMarkId bookmarkId) {
+        log.info("!!!!!!!!!!!!!!!!!!!!!!!!!Deleting bookmark with ID: " + bookmarkId);
+
         bookmarkRepository.deleteById(bookmarkId);
     }
 

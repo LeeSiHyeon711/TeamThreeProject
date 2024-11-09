@@ -16,4 +16,6 @@ public interface ReplyService {
     List<ReplyDTO> readRepliesByBoardId(Long boardId);
     ReplyDTO createReply(BoardDTO board, UserDTO user, String content);
     void saveReply(ReplyDTO replyDTO);
+
+    boolean deleteReply(Long replyId);
 }

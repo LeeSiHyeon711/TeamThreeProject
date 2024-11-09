@@ -8,19 +8,12 @@
     <div class="container mt-5">
         <input type="hidden" id="boardId" th:value="${dto.boardId}">
         <input type="hidden" id="userId" th:value="${loggedInUser != null ? loggedInUser.userId : 0}">
-        <h2 th:text="${dto.title}">Board Title</h2>
-
-        <div class="form-group mt-3">
-            <div class="input-group mb-3">
-                <input type="text" class="form-control" id="purchaseLink" th:value="${dto.purchaseLink}" readonly>
-                <div class="input-group-append">
-                    <button type="button" class="btn btn-outline-secondary" onclick="copyLink()">
-                        <img th:src="@{/images/copyLink.png}" alt="링크 복사" style="width: 24px; height: 24px;">
-                    </button>
-                </div>
-            </div>
-            <small id="copyAlert" class="form-text text-muted" style="display: none;">URL copied to clipboard!</small>
+        <!-- 삭제 및 수정 버튼 그룹 (오른쪽에 한 줄로 정렬) -->
+        <div class="btn-group float-end" role="group" th:if="${loggedInUser != null and loggedInUser.userId == dto.userId}">
+            <button type="button" class="btn btn-danger" th:onclick="|deletePost(${dto.boardId})|">삭제</button>
+            <button type="button" class="btn btn-info" th:onclick="|modifyPost(${dto.boardId})|">수정</button>
         </div>
+        <h2 th:text="${dto.title}">Board Title</h2>
 
         <div class="form-group mt-3">
             <div th:if="${dto.fileNames != null && !dto.fileNames.isEmpty()}">
@@ -38,23 +31,41 @@
             </div>
         </div>
 
-        <div class="form-group mt-4">
-            <p th:text="${dto.content}">This is the content of the post.</p>
+        <!-- 게시글 내용 표시 -->
+        <div class="form-group mt-3">
+            <p th:text="${dto.content}">게시글 내용이 여기에 표시됩니다.</p>
         </div>
 
-        <a href="/list" class="btn btn-secondary mt-4">돌아가기</a>
-        <!-- 삭제 버튼 (로그인한 사용자가 작성한 글일 때만 나타나게 하기) -->
-        <div th:if="${loggedInUser != null and loggedInUser.userId == dto.userId}">
-            <button type="button" class="btn btn-danger" th:onclick="|deletePost(${dto.boardId})|" >삭제</button>
-            <button type="button" class="btn btn-info" th:onclick="|modifyPost(${dto.boardId})|" >수정</button>
+        <!-- 현재 페이지 링크 공유버튼 -->
+        <div class="form-group mt-3" th:if="${dto.purchaseLink != null}">
+            <div class="input-group">
+                <!-- 왼쪽에 "구매 링크" 레이블 -->
+                <div class="input-group-prepend">
+                    <span class="input-group-text">구매 링크</span>
+                </div>
+
+                <!-- URL 주소 입력 필드 (읽기 전용) -->
+                <input type="text" class="form-control" id="purchaseLink" th:value="${dto.purchaseLink != null ? dto.purchaseLink : ''}" readonly>
+
+                <!-- 오른쪽에 복사 버튼 -->
+                <div class="input-group-append">
+                    <button type="button" class="btn btn-outline-secondary" onclick="copyLink()">
+                        <img th:src="@{/images/copyLink.png}" alt="링크 복사" style="width: 24px; height: 24px;">
+                    </button>
+                </div>
+            </div>
+            <small id="copyAlert" class="form-text text-muted" style="display: none;">URL copied to clipboard!</small>
         </div>
+
+        <a href="/list" class="btn btn-secondary float-end mt-4">돌아가기</a>
+
     </div>
     <div class="row mt-3">
         <div class="col-md-12">
             <div class="my-4 ">
-                <button class="btn btn-info addReplyBtn">ADD REPLY</button>
+                <button class="btn btn-info addReplyBtn">댓글 쓰기</button>
             </div>
-            <ul class="list-group replyList">
+            <ul id="replyList" class="list-group replyList">
                 <li th:each="reply : ${replies}" class="list-group-item">
                     <strong th:text="${reply.replyer}">작성자</strong>:
                     <span th:text="${reply.content}">댓글 내용</span>
@@ -81,11 +92,11 @@
                 <div class="modal-body">
                     <div class="input-group mb-3">
                         <span class="input-group-text">Reply Text</span>
-                        <input type="text" class="form-control replyText" name="content" placeholder="댓글을 입력하세요"> <!-- 댓글 내용을 content로 설정 -->
+                        <input type="text" class="form-control replyText" name="content" placeholder="댓글을 입력하세요" required>
                     </div>
                     <div class="input-group mb-3">
                         <span class="input-group-text">Replyer</span>
-                        <input type="text" class="form-control replyer" name="replyer" placeholder="작성자 이름">
+                        <input type="text" class="form-control replyer" name="replyer" placeholder="작성자 이름" th:value="${loggedInUser.nickname}" readonly>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -127,13 +138,18 @@
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script th:inline="javascript">
+        /* 현재 로그인한 사용자의 정보를 window.loggedInUser 변수에 담기 */
+        window.loggedInUser = /*[[${loggedInUser}]]*/ null;
+    </script>
+
     <script>
-        // 링크 복사 기능
+        // 지정된 URL을 복사하는 함수
         function copyLink() {
-            const url = window.location.href;
+            const url = document.getElementById("purchaseLink").value; // 특정 URL을 가져옴
             navigator.clipboard.writeText(url)
                 .then(() => {
-                    alert('링크가 복사되었습니다!');
+                    alert('URL이 복사되었습니다!');
                 })
                 .catch(err => {
                     console.error('복사에 실패했습니다', err);
@@ -169,12 +185,15 @@
             }
         }
 
+        // 페이지 로드 시 댓글 목록을 자동으로 불러오기
+        document.addEventListener("DOMContentLoaded", function() {
+            printReplies(1, 10, true); // 초기 페이지 번호와 사이즈를 설정하여 호출
+        });
+
+
         // 댓글 등록 모달 관련
-        const boardId = document.getElementById("boardId").value;
         const registerModal = new bootstrap.Modal(document.querySelector(".registerModal"));
         const registerBtn = document.querySelector(".registerBtn");
-        const replyText = document.querySelector(".replyText");
-        const replyer = document.querySelector(".replyer");
         const closeRegisterBtn = document.querySelector(".closeRegisterBtn");
 
         document.querySelector(".addReplyBtn").addEventListener("click", function () {
@@ -201,65 +220,7 @@
             }
         });
 
-        // 댓글 수정 모달 관련
-        const modifyModal = new bootstrap.Modal(document.querySelector(".modifyModal"));
-        const replyIdHeader = document.querySelector(".replyHeader");
-        const modifyText = document.querySelector(".modifyText");
-        const modifyBtn = document.querySelector(".modifyBtn");
-        const removeBtn = document.querySelector(".removeBtn");
-        const closeModifyBtn = document.querySelector(".closeModifyBtn");
-
-        document.querySelector(".replyList").addEventListener("click", function (e) {
-            const target = e.target;
-
-            if (!target || target.tagName !== 'SPAN') {
-                return;
-            }
-
-            const replyId = target.getAttribute("data-rno");
-
-            if (!replyId) {
-                return;
-            }
-
-            getReply(replyId).then(reply => {
-                replyIdHeader.innerHTML = reply.rno;
-                modifyText.value = reply.replyText;
-                modifyModal.show();
-            }).catch(e => {
-                alert('댓글 불러오기에 실패했습니다.');
-            });
-        });
-
-        modifyBtn.addEventListener("click", function () {
-            const replyData = {
-                boardId: boardId,
-                rno: replyIdHeader.innerHTML,
-                replyText: modifyText.value
-            };
-
-            modifyReply(replyData).then(result => {
-                alert(result.rno + " 댓글이 수정되었습니다.");
-                modifyModal.hide();
-                updateReplyList(); // 댓글 목록 갱신
-            }).catch(e => {
-                alert("댓글 수정에 실패했습니다.");
-            });
-        });
-
-        closeModifyBtn.addEventListener("click", function () {
-            modifyModal.hide();
-        });
-
-        removeBtn.addEventListener("click", function () {
-            removeReply(replyIdHeader.innerHTML).then(result => {
-                alert(result.rno + " 댓글이 삭제되었습니다.");
-                modifyModal.hide();
-                updateReplyList(); // 댓글 목록 갱신
-            }).catch(e => {
-                alert("댓글 삭제에 실패했습니다.");
-            });
-        });
+        // 댓글 등록 기능
         function addReply(replyObj) {
             fetch("/replies", {
                 method: "POST",
@@ -278,46 +239,87 @@
                 .then(data => {
                     console.log("Reply added:", data);
                     alert("댓글이 성공적으로 등록되었습니다.");
-
-                    // 댓글 목록에 새로운 댓글 추가
-                    const replyList = document.getElementById("replyList");
-                    const newReply = document.createElement("div");
-                    newReply.innerHTML = `
-            <div class="reply">
-                <p><strong>${data.replyer}</strong>: ${data.replyText}</p>
-                <p>${new Date(data.createdDate).toLocaleString()}</p>
-            </div>
-        `;
-                    replyList.appendChild(newReply);
+                    registerModal.hide();  // 댓글 등록 후 모달 닫기
+                    window.location.reload(); // 페이지 새로고침
                 })
-                .catch(error => console.error("Error adding reply:", error));
+                .catch(error => {
+                    console.error("Error adding reply:", error);
+                    alert("댓글 등록에 실패했습니다. 다시 시도해주세요.");
+                });
         }
-
 
         // 댓글 목록 갱신 함수
         function updateReplyList() {
             printReplies(1, 10, true);
         }
 
+        // 댓글 목록 출력 함수
         function printReplies(page, size, reset) {
-            fetch(`/replies?boardId=${boardId}&page=${page}&size=${size}`)
+            const currentUserId = window.loggedInUser ? window.loggedInUser.userId : null;
+            const boardId = document.getElementById('boardId').value;  // boardId 값을 가져옴
+
+            fetch(`/replies/list`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ boardId: boardId, page: page, size: size })  // 데이터 전송
+            })
                 .then(response => response.json())
                 .then(data => {
+                    if (!Array.isArray(data)) {
+                        throw new Error("Received data is not an array");
+                    }
+
                     const replyList = document.getElementById("replyList");
                     replyList.innerHTML = "";  // 기존 목록 초기화
+
                     data.forEach(reply => {
                         const replyItem = document.createElement("li");
                         replyItem.classList.add("list-group-item");
+
+                        // 조건에 따라 배경색을 다르게 지정
+                        if (reply.userId == currentUserId) {
+                            replyItem.style.backgroundColor = "#f0f8ff";  // 예를 들어 연한 파란색 배경
+                        }
+
+                        // 댓글 내용과 작성자를 설정하고, 삭제 버튼은 조건부로 추가
                         replyItem.innerHTML = `
-                    <strong>${reply.replyer}</strong>: ${reply.content}
-                    <br><small>${new Date(reply.createdDate).toLocaleString()}</small>
-                `;
+                <strong>${reply.replyer}</strong>: ${reply.content}
+                <br><small>${new Date(reply.createdDate).toLocaleString()}</small>
+                ${reply.userId == currentUserId ? `<button class="removeReplyBtn btn btn-danger float-end btn-sm" onclick="removeReply(${reply.replyId})">댓글삭제</button>` : ''}
+            `;
+
                         replyList.appendChild(replyItem);
                     });
                 })
                 .catch(error => console.error("Error loading replies:", error));
         }
 
+
+        // 댓글 삭제 기능
+        function removeReply(replyId) {
+            if (confirm("정말로 댓글을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) {
+                fetch(`/replies/${replyId}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert("댓글이 성공적으로 삭제되었습니다.");
+                            window.location.reload(); // 페이지 새로고침
+                        } else {
+                            alert("댓글 삭제에 실패했습니다. 다시 시도해주세요.");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error deleting reply:", error);
+                        alert("서버 오류가 발생했습니다. 다시 시도해주세요.");
+                    });
+            }
+        }
     </script>
 
 </div>

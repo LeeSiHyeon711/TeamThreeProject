@@ -33,16 +33,10 @@ public class ReplyController {
         return "/my/myReplyList";
     }
 
-
     // 특정 게시물의 댓글 조회
     @GetMapping("/board/{boardId}")
     @ResponseBody // json 형식으로 반환
     public List<ReplyDTO> getRepliesByBoard(@PathVariable Long boardId, Model model) {
-//        List<ReplyDTO> replies = replyService.readRepliesByBoardId(boardId);
-//        Long userId = 1L; // 테스트시 replyController와 맞추기
-//        model.addAttribute("UID", userId);
-//        model.addAttribute("replies", replies);
-//        return "/my/myBoard";
         return replyService.readRepliesByBoardId(boardId);
     }
 
@@ -64,4 +58,31 @@ public class ReplyController {
         return ResponseEntity.ok(createdReply);
     }
 
+    // 댓글 조회 기능 추가
+    @PostMapping("/replies/list")
+    @ResponseBody
+    public ResponseEntity<List<ReplyDTO>> getRepliesByBoard(@RequestBody ReplyDTO replyRequest) {
+        Long boardId = replyRequest.getBoardId();
+        List<ReplyDTO> replies = replyService.readRepliesByBoardId(boardId);
+
+        return ResponseEntity.ok(replies);
+    }
+
+    // 댓글 삭제
+    @DeleteMapping("/replies/{replyId}")
+    public ResponseEntity<String> deleteReply(@PathVariable Long replyId) {
+        try {
+            // 댓글이 존재하는지 확인 후 삭제
+            boolean deleted = replyService.deleteReply(replyId);
+
+            if (deleted) {
+                return ResponseEntity.ok("댓글이 성공적으로 삭제되었습니다.");
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("댓글을 찾을 수 없습니다.");
+            }
+        } catch (Exception e) {
+            log.error("댓글 삭제 중 오류 발생:", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("댓글 삭제에 실패했습니다.");
+        }
+    }
 }

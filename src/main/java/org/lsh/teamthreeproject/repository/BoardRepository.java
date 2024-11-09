@@ -35,4 +35,6 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
         limit 10
     """)
     List<Board> findTop10ByPopularity(LocalDateTime fourWeeksAgo);
+
+    List<Board> findByUser_UserId(Long userId);
 }

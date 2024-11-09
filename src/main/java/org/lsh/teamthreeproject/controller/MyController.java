@@ -31,7 +31,7 @@ public class MyController {
 //        return "/my/profile";
         Optional<UserDTO> userDTO = userService.readUser(userId);
         userDTO.ifPresent(value -> model.addAttribute("user", value));
-        return "my/profile";
+        return "my/mypage";
     }
 
     // 프로필 수정 폼

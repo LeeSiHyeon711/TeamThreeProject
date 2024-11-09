@@ -29,6 +29,8 @@ public interface BoardService {
     void update(BoardDTO boardDTO, HttpServletRequest request);
     List<BoardDTO> getPopularBoards();
     Optional<BoardDTO> findById(Long boardId);
+    List<BoardDTO> findBoardsByUserId(long userId);
+
 
     default Board dtoToEntity(BoardDTO boardDTO, UserDTO userDTO) {
         // User 객체를 생성하여 필요한 정보를 설정
@@ -39,7 +41,7 @@ public interface BoardService {
                 .build();
 
         // Board 객체 생성
-        Board board = Board.builder()
+        return Board.builder()
                 .user(user)
                 .boardId(boardDTO.getBoardId())
                 .title(boardDTO.getTitle())
@@ -47,8 +49,6 @@ public interface BoardService {
                 .regDate(boardDTO.getRegDate())
                 .purchaseLink(boardDTO.getPurchaseLink())
                 .build();
-
-        return board;
     }
     default BoardDTO entityToDTO(Board board) {
         // 이미지 URL 리스트 추출
@@ -78,4 +78,5 @@ public interface BoardService {
                 .fileNames(imageUrls) // 이미지 URL 리스트 설정 추가
                 .build();
     }
+
 }

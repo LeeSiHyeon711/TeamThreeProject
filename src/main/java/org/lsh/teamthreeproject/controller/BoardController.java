@@ -72,16 +72,21 @@ public class BoardController {
     public String deleteBoard(@PathVariable("userId") Long userId,
                               @PathVariable("boardId") Long boardId) {
         boardService.deleteBoard(boardId);
-        return "redirect:/myBoardList/" + userId;
+        return "redirect:/mypage";
     }
 
-    // 게시글 리스트 조회
     @GetMapping("/list")
-    public String listGET(Model model) {
+    public String listGET(Model model, HttpSession session) {
         List<BoardDTO> boardList = boardService.findAllByOrderByRegDateDesc(); // 모든 게시글을 가져오는 서비스 메소드
         model.addAttribute("boardList", boardList);
+
+        // 세션에서 유저 정보를 가져와 모델에 추가
+        UserDTO loggedInUser = (UserDTO) session.getAttribute("user");
+        model.addAttribute("loggedInUser", loggedInUser);
+
         return "board/list"; // list.html 파일을 반환하도록 설정
     }
+
 
     // 게시글 등록 페이지 이동
     @GetMapping("/register")
@@ -141,27 +146,33 @@ public class BoardController {
     }
 
 
+    // 게시글 읽기 페이지 이동
     @GetMapping("/read/{boardId}")
     public String read(@PathVariable Long boardId, Model model, HttpSession session) {
         // 게시글 읽기
         BoardDTO boardDTO = boardService.readOne(boardId);
         boardService.visitCount(boardId);
-        log.info(boardDTO);
 
-        // 세션에서 로그인된 사용자 정보 가져오기
-        UserDTO loggedInUser = (UserDTO) session.getAttribute("user"); // 세션에 저장된 사용자 정보 사용
-        model.addAttribute("dto", boardDTO);
+        // 세션에서 로그인한 유저의 정보 가져오기
+        UserDTO loggedInUser = (UserDTO) session.getAttribute("user");
+        log.info("LoggedIn User in Session: " + loggedInUser);  // 유저 정보 로그 출력
 
         if (loggedInUser != null) {
-            model.addAttribute("loggedInUser", loggedInUser);
+            model.addAttribute("loggedInUser", loggedInUser); // 모델에 유저 정보 추가
+        } else {
+            // 로그인 정보가 없으면 로그인 페이지로 리다이렉트
+            return "redirect:/user/login";
         }
+
+        model.addAttribute("dto", boardDTO);  // 게시글 정보를 모델에 추가
 
         // 댓글 리스트 추가
         List<ReplyDTO> replies = replyService.readRepliesByBoardId(boardId);
         model.addAttribute("replies", replies);
 
-        return "board/read";  // 템플릿 이름이 "board/read"라면 이렇게 명시
+        return "board/read";  // read.html 파일로 이동
     }
+
 
 
     private List<String> fileUpload(UploadFileDTO uploadFileDTO){

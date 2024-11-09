@@ -103,6 +103,16 @@ public class ReplyServiceImpl implements ReplyService {
         replyRepository.save(reply);
     }
 
+    public boolean deleteReply(Long replyId) {
+        Optional<Reply> replyOptional = replyRepository.findById(replyId);
+
+        if (replyOptional.isPresent()) {
+            replyRepository.deleteById(replyId);
+            return true;
+        }
+        return false;
+    }
+
     private Reply convertDTOToEntity(ReplyDTO replyDTO) {
         Board board = new Board();
         board.setBoardId(replyDTO.getBoardId());

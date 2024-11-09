@@ -1,7 +1,9 @@
 package org.lsh.teamthreeproject.entity;
 
 import jakarta.persistence.Embeddable;
+import lombok.Data;
 
+@Data
 @Embeddable
 public class BookMarkId {
     private long boardId;

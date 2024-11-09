@@ -6,6 +6,7 @@ import org.lsh.teamthreeproject.dto.BookmarkDTO;
 import org.lsh.teamthreeproject.entity.BookMarkId;
 import org.lsh.teamthreeproject.service.BookMarkService;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -47,10 +48,11 @@ public class BookmarkController {
     }
 
     @PostMapping("/bookmarkDelete/{userId}/{boardId}")
+    @Transactional
     public String deleteBookmark(@PathVariable("userId") Long userId,
                                  @PathVariable("boardId") Long boardId) {
-        BookMarkId bookmarkId = new BookMarkId(userId, boardId);
+        BookMarkId bookmarkId = new BookMarkId(boardId, userId);
         bookMarkService.deleteBookMark(bookmarkId);
-        return "redirect:/myBookmarkList/" + userId;
+        return "redirect:/mypage";
     }
 }
