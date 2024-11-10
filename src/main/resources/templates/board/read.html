@@ -122,22 +122,22 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Register Reply</h5>
+                    <h5 class="modal-title">댓글 쓰기</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="input-group mb-3">
-                        <span class="input-group-text">Reply Text</span>
+                        <span class="input-group-text">댓글 내용</span>
                         <input type="text" class="form-control replyText" name="content" placeholder="댓글을 입력하세요" required>
                     </div>
                     <div class="input-group mb-3">
-                        <span class="input-group-text">Replyer</span>
+                        <span class="input-group-text">작성자</span>
                         <input type="text" class="form-control replyer" name="replyer" placeholder="작성자 이름" th:value="${loggedInUser.nickname}" readonly>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary registerBtn">Register</button>
-                    <button type="button" class="btn btn-outline-dark closeRegisterBtn">Close</button>
+                    <button type="button" class="btn btn-primary registerBtn">등록</button>
+                    <button type="button" class="btn btn-outline-dark closeRegisterBtn">취소</button>
                 </div>
             </div>
         </div>
