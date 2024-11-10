@@ -64,6 +64,9 @@ public class ReplyServiceImpl implements ReplyService {
         List<Reply> replies = replyRepository.findByBoard(board);
 
         return replies.stream().map(reply -> {
+            System.out.println("ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇReply ID: " + reply.getReplyId());
+            System.out.println("ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇUser ID: " + reply.getUser().getUserId());
+
             ReplyDTO replyDTO = ReplyDTO.builder()
                     .replyId(reply.getReplyId())
                     .content(reply.getContent())
@@ -80,6 +83,7 @@ public class ReplyServiceImpl implements ReplyService {
 
             return replyDTO;
         }).collect(Collectors.toList());
+
     }
 
 

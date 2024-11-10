@@ -8,7 +8,7 @@
     <!-- 채팅방 목록 부분 -->
     <div id="chatRoomSection">
         <h2 class="text-center mb-4">채팅방 목록
-            <button id="createRoomButton" onclick="createRoom()" class="btn btn-success float-right">채팅방 생성</button>
+            <button id="createRoomButton" onclick="createRoom()" class="btn btn-primary float-right">채팅방 생성</button>
         </h2>
         <!-- 로그인된 유저의 닉네임 표시 -->
         <span th:if="${nickname != null}" th:text="${nickname} + '님, 환영합니다!'"></span>
@@ -20,11 +20,15 @@
                 <!-- 채팅방 정보 표시 -->
                 <span th:text="'채팅방 ID: ' + ${room.chatRoomId} + ' | 이름: ' + ${room.name}"></span>
 
-                <!-- 삭제 버튼 클릭 시 호출되는 함수 -->
-                <button class="btn btn-danger btn-sm" th:onclick="|deleteRoom(${room.chatRoomId})|">삭제</button>
+                <div>
+                    <!-- 채팅방 클릭 시 해당 방으로 이동하는 링크 -->
+                    <a th:href="@{'/chat'(roomId=${room.chatRoomId}, nickname=${nickname})}">
+                        <button class="btn btn-primary">입장하기</button>
+                    </a>
+                    <!-- 삭제 버튼 클릭 시 호출되는 함수 -->
+                    <button class="btn btn-danger btn-sm ms-2" th:onclick="|deleteRoom(${room.chatRoomId})|">삭제</button>
+                </div>
 
-                <!-- 채팅방 클릭 시 해당 방으로 이동하는 링크 -->
-                <a th:href="@{'/chat'(roomId=${room.chatRoomId}, nickname=${nickname})}" class="btn btn-primary">채팅방 입장</a>
             </div>
         </div>
     </div>

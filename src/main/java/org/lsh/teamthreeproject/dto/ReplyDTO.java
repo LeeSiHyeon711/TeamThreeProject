@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReplyDTO {
-    private long replyId;
+    private Long replyId;
     private String content;
     private LocalDateTime createdDate;
     private Boolean isDeleted = false;

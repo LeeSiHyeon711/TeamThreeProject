@@ -7,35 +7,39 @@
 <div layout:fragment="content">
 
     <div class="container mt-5">
-        <h2>Register Board</h2>
         <form th:action="@{/board/register}" th:object="${dto}" method="post" enctype="multipart/form-data">
             <div class="form-group">
-                <label for="title">Title</label>
+                <label for="title">제목</label>
                 <input type="text" class="form-control" id="title" th:field="*{title}" placeholder="Enter title" required>
             </div>
 
             <div class="form-group mt-3">
-                <label for="content">Content</label>
+                <label for="content">내용</label>
                 <textarea class="form-control" id="content" rows="5" th:field="*{content}" placeholder="Enter content" required></textarea>
             </div>
 
             <div class="form-group mt-3">
-                <label for="purchaseLink">Purchase Link</label>
-                <input type="url" class="form-control" id="purchaseLink" th:field="*{purchaseLink}" placeholder="Enter purchase link">
+                <label for="purchaseLink">구매 링크</label>
+                <input type="url" class="form-control" id="purchaseLink" th:field="*{purchaseLink}"
+                       placeholder="Enter purchase link" oninput="removeSpaces(this)">
             </div>
             <div class="form-group mt-3">
-                <label for="files">File Attachments</label>
+                <label for="files">이미지 첨부</label>
                 <input type="file" class="form-control-file" id="files" th:field="*{files}" multiple onchange="previewFiles(this)" required>
                 <div id="filePreview" class="d-flex mt-3 flex-wrap"></div>
             </div>
 
-            <button type="submit" class="btn btn-primary mt-4">Register</button>
-            <a href="/list" class="btn btn-secondary mt-4">Cancel</a>
+            <button type="submit" class="btn btn-primary mt-4">등록</button>
+            <a href="/list" class="btn btn-secondary mt-4">취소</a>
         </form>
     </div>
 
     <!-- JavaScript for file preview -->
     <script>
+        function removeSpaces(input) {
+            input.value = input.value.replace(/\s+/g, '');
+        }
+
         function previewFiles(input) {
             const filePreview = document.getElementById('filePreview');
             filePreview.innerHTML = ""; // 기존 미리보기 초기화

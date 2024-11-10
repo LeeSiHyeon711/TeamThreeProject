@@ -6,18 +6,28 @@
 
 <div layout:fragment="content">
     <div class="container mt-5">
-        <input type="hidden" id="boardId" th:value="${dto.boardId}">
+        <!-- 게시글 신고 버튼 -->
+        <button th:data-board-id="${board.boardId}"
+                th:data-nickname="${loggedInUser.nickname}"
+                onclick="openBoardReportModal(this.getAttribute('data-board-id'), this.getAttribute('data-nickname'))"
+                class="btn btn-danger" style="padding: 5px; border: none; background-color: transparent;">
+            <img src="/images/report-icon.png" alt="신고하기" style="width: 24px; height: 24px;">
+        </button>
+        <input type="hidden" id="boardId" th:value="${board.boardId}">
+        <input type="hidden" id="nickname" th:value="${loggedInUser.nickname}">
         <input type="hidden" id="userId" th:value="${loggedInUser != null ? loggedInUser.userId : 0}">
         <!-- 삭제 및 수정 버튼 그룹 (오른쪽에 한 줄로 정렬) -->
-        <div class="btn-group float-end" role="group" th:if="${loggedInUser != null and loggedInUser.userId == dto.userId}">
-            <button type="button" class="btn btn-danger" th:onclick="|deletePost(${dto.boardId})|">삭제</button>
-            <button type="button" class="btn btn-info" th:onclick="|modifyPost(${dto.boardId})|">수정</button>
+        <div class="btn-group float-end" role="group" th:if="${loggedInUser != null and loggedInUser.userId == board.userId}">
+            <button type="button" class="btn btn-danger" th:onclick="|deletePost(${board.boardId})|">삭제</button>
+            <button type="button" class="btn btn-info" th:onclick="|modifyPost(${board.boardId})|">수정</button>
         </div>
-        <h2 th:text="${dto.title}">Board Title</h2>
+
+
+        <h2 th:text="${board.title}">Board Title</h2>
 
         <div class="form-group mt-3">
-            <div th:if="${dto.fileNames != null && !dto.fileNames.isEmpty()}">
-                <div th:each="file : ${dto.fileNames}" class="mt-2">
+            <div th:if="${board.fileNames != null && !board.fileNames.isEmpty()}">
+                <div th:each="file : ${board.fileNames}" class="mt-2">
                     <th:block th:if="${file.toLowerCase().endsWith('.png') || file.toLowerCase().endsWith('.jpg') || file.toLowerCase().endsWith('.jpeg') || file.toLowerCase().endsWith('.gif')}">
                         <img th:src="@{/upload/{file}(file=${file})}" class="img-thumbnail" style="max-width: 100%; height: auto; margin: 5px;" alt="Image preview">
                     </th:block>
@@ -26,18 +36,18 @@
                     </th:block>
                 </div>
             </div>
-            <div th:if="${dto.fileNames == null || dto.fileNames.isEmpty()}">
+            <div th:if="${board.fileNames == null || board.fileNames.isEmpty()}">
                 <p>No files uploaded.</p>
             </div>
         </div>
 
         <!-- 게시글 내용 표시 -->
         <div class="form-group mt-3">
-            <p th:text="${dto.content}">게시글 내용이 여기에 표시됩니다.</p>
+            <p th:text="${board.content}">게시글 내용이 여기에 표시됩니다.</p>
         </div>
 
         <!-- 현재 페이지 링크 공유버튼 -->
-        <div class="form-group mt-3" th:if="${dto.purchaseLink != null}">
+        <div class="form-group mt-3" th:if="${board.purchaseLink != null && board.purchaseLink != ''}">
             <div class="input-group">
                 <!-- 왼쪽에 "구매 링크" 레이블 -->
                 <div class="input-group-prepend">
@@ -45,7 +55,8 @@
                 </div>
 
                 <!-- URL 주소 입력 필드 (읽기 전용) -->
-                <input type="text" class="form-control" id="purchaseLink" th:value="${dto.purchaseLink != null ? dto.purchaseLink : ''}" readonly>
+                <input type="text" class="form-control" id="purchaseLink"
+                       th:value="${board.purchaseLink}" readonly>
 
                 <!-- 오른쪽에 복사 버튼 -->
                 <div class="input-group-append">
@@ -56,9 +67,34 @@
             </div>
             <small id="copyAlert" class="form-text text-muted" style="display: none;">URL copied to clipboard!</small>
         </div>
+        <!-- 좋아요 및 북마크 버튼 -->
+        <div class="d-flex justify-content-end">
+            <!-- HTML 요소에 데이터 속성으로 boardId와 userId를 설정합니다 -->
+            <button type="button" class="btn btn-link p-0"
+                    th:data-board-id="${board.boardId}"
+                    th:data-user-id="${loggedInUser.userId}"
+                    onclick="toggleIcon(this, 'like')">
+                <!--                                <img th:src="@{/images/like-icon.png}"-->
+                <img th:src="${board.isLiked ? '/images/like-icon-checked.png' : '/images/like-icon.png'}"
+                     data-src-checked="/images/like-icon-checked.png"
+                     data-src-unchecked="/images/like-icon.png"
+                     class="icon" alt="좋아요"
+                     style="width: 24px; height: 24px;">
+            </button>
 
+            <button type="button" class="btn btn-link p-0 ml-3"
+                    th:data-board-id="${board.boardId}"
+                    th:data-user-id="${loggedInUser.userId}"
+                    onclick="toggleIcon(this, 'bookmark')">
+                <!--                                <img th:src="@{/images/bookmark-icon.png}"-->
+                <img th:src="${board.isBookmarked ? '/images/bookmark-icon-checked.png' : '/images/bookmark-icon.png'}"
+                     data-src-checked="/images/bookmark-icon-checked.png"
+                     data-src-unchecked="/images/bookmark-icon.png"
+                     class="icon" alt="북마크"
+                     style="width: 24px; height: 24px;">
+            </button>
+        </div>
         <a href="/list" class="btn btn-secondary float-end mt-4">돌아가기</a>
-
     </div>
     <div class="row mt-3">
         <div class="col-md-12">
@@ -105,33 +141,64 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div><!-- end regist modal -->
 
-    <!-- end regist modal -->
-
-    <div class="modal modifyModal" tabindex="-1">
-        <div class="modal-dialog">
+    <!-- 게시글 신고 모달 -->
+    <div class="modal fade" id="reportModal" tabindex="-1" role="dialog" aria-labelledby="reportModalLabel" aria-hidden="true"
+         th:data-room-id="${board.boardId}" th:data-nickname="${board.nickname}">
+        <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title replyHeader"></h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="reportModalLabel">신고하기</h5>
+                    <button type="button" class="close" onclick="closeReportModal()" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
                 <div class="modal-body">
-                    <div class="input-group mb-3">
-                        <span class="input-group-text">Reply Text</span>
-                        <input type="text" class="form-control modifyText" >
-                    </div>
+                    <!-- 숨김 필드에 데이터 설정 -->
+                    <input type="hidden" id="reportType" value="Board"> <!-- 신고 유형  -->
+                    <input type="hidden" id="reportId"> <!-- 신고 대상 ID 저장 -->
+                    <input type="hidden" id="reportedBy"> <!-- 신고자 닉네임 저장 -->
+
+                    <label for="reportReason">신고 사유:</label>
+                    <textarea id="reportReason" class="form-control" rows="4" placeholder="신고 사유를 입력하세요"></textarea>
                 </div>
-
-
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-info modifyBtn">Modify</button>
-                    <button type="button" class="btn btn-danger removeBtn">Remove</button>
-                    <button type="button" class="btn btn-outline-dark closeModifyBtn">Close</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeReportModal()">취소</button>
+                    <button type="button" class="btn btn-primary" onclick="submitReport()">신고 제출</button>
                 </div>
             </div>
         </div>
-    </div> <!--modifyModal -->
+    </div>
+
+    <!-- 댓글 신고 모달 -->
+    <div class="modal fade" id="replyReportModal" tabindex="-1" role="dialog" aria-labelledby="replyReportModalLabel" aria-hidden="true"
+    th:data-nickname="${board.nickname}">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="replyReportModalLabel">댓글 신고하기</h5>
+                    <button type="button" class="close" onclick="closeReplyReportModal()" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- 숨김 필드에 데이터 설정 -->
+                    <input type="hidden" id="replyReportType" value="Reply"> <!-- 신고 유형 -->
+                    <input type="hidden" id="replyReportId"> <!-- 댓글 신고 대상 ID -->
+                    <input type="hidden" id="replyReportedBy" th:value="${loggedInUser.nickname}">
+
+                    <label for="replyReportReason">신고 사유:</label>
+                    <textarea id="replyReportReason" class="form-control" rows="4" placeholder="신고 사유를 입력하세요"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeReplyReportModal()">취소</button>
+                    <button type="button" class="btn btn-primary" onclick="submitReplyReport()">신고 제출</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Bootstrap JS and dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -144,6 +211,149 @@
     </script>
 
     <script>
+        // 전역 변수 선언
+        let currentUserId = window.loggedInUser ? window.loggedInUser.userId : null;
+        let boardId;
+        let nickname;
+        let replyId;
+
+        // 게시글 신고 모달 열기 함수
+        function openBoardReportModal(id, userNickname) {
+            // hidden 필드에 데이터 설정
+            boardId = id;  // 전역 변수에 저장
+            nickname = userNickname;  // 전역 변수에 저장
+
+            document.getElementById('reportId').value = boardId;
+            document.getElementById('reportedBy').value = nickname;
+            console.log("boardId: ", boardId, "nickname: ", nickname);
+
+            // 모달 열기
+            $('#reportModal').modal('show');
+        }
+
+        // 댓글 신고 모달 열기 함수!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
+        function openReplyReportModal(replyId, userNickname) {
+
+            nickname = userNickname;  // 전역 변수에 저장
+
+            document.getElementById('replyReportId').value = replyId;
+            document.getElementById('replyReportedBy').value = nickname; // 현재 로그인한 사용자 ID
+
+            console.log("Logged-in user (ID):", nickname);
+            console.log("Reply ID:", replyId);
+
+            $('#replyReportModal').modal('show');
+        }
+
+
+        // 게시글 신고 모달 닫기
+        function closeReportModal() {
+            $('#reportModal').modal('hide');
+            document.getElementById('reportReason').value = '';
+            document.getElementById('reportType').value = '';
+            document.getElementById('reportId').value = '';
+        }
+
+        // 댓글 신고 모달 닫기 함수!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
+        function closeReplyReportModal() {
+            $('#replyReportModal').modal('hide');
+        }
+
+        // 게시글 신고 제출 함수
+        function submitReport() {
+            const reason = document.getElementById('reportReason').value.trim();
+
+            if (reason && boardId) {  // boardId와 reason이 존재하는지 확인
+                fetch(`/api/report/board`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ boardId: boardId, reason: reason, reportedBy: nickname })
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert("신고가 제출되었습니다.");
+                            closeReportModal();
+                        } else {
+                            throw new Error("신고 제출에 실패했습니다.");
+                        }
+                    })
+                    .catch(error => console.error("신고 제출 실패:", error));
+            } else {
+                alert("신고 사유를 입력하세요.");
+            }
+        }
+
+        function submitReplyReport() {
+            const reason = document.getElementById('replyReportReason').value.trim();
+            const replyId = document.getElementById('replyReportId').value; // 댓글 ID
+            const reportedBy = document.getElementById('replyReportedBy').value; // 정확히 로그인한 사용자 ID
+
+            // 로그로 확인
+            console.log("신고할 댓글 ID:", replyId);
+            console.log("신고자 (ID):", reportedBy);
+            console.log("신고 사유:", reason);
+
+            if (!reason) {
+                alert("신고 사유를 입력하세요.");
+                return;
+            }
+
+            // 서버로 데이터 전송
+            fetch(`/api/report/reply`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ replyId: replyId, reason: reason, reportedBy: reportedBy })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert("신고가 제출되었습니다.");
+                        closeReplyReportModal();
+                    } else {
+                        throw new Error("신고 제출에 실패했습니다.");
+                    }
+                })
+                .catch(error => console.error("신고 제출 실패:", error));
+        }
+
+        function toggleIcon(button, type) {
+            const img = $(button).find('img');
+            const boardId = $(button).data('board-id');  // 데이터 속성에서 boardId 가져오기
+            const userId = $(button).data('user-id');    // 데이터 속성에서 userId 가져오기
+
+            console.log("boardId: ", boardId, "userId: ", userId);
+
+            if (!userId) {
+                alert("로그인이 필요합니다");
+                return;
+            }
+
+            const url = type === 'like' ? '/toggleLike' : '/toggleBookmark';
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                contentType: 'application/x-www-form-urlencoded',
+                data: {
+                    boardId: boardId,
+                    userId: userId
+                },
+                success: function (isActive) {
+                    // true면 활성화, false면 비활성화 이미지로 전환
+                    const checkedSrc = img.attr('data-src-checked');
+                    const uncheckedSrc = img.attr('data-src-unchecked');
+                    img.attr('src', isActive ? checkedSrc : uncheckedSrc);
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error:', error);
+                    console.error("status: ", status);
+                    console.error("Response: ", xhr.responseText);
+                }
+            });
+        }
         // 지정된 URL을 복사하는 함수
         function copyLink() {
             const url = document.getElementById("purchaseLink").value; // 특정 URL을 가져옴
@@ -186,7 +396,7 @@
         }
 
         // 페이지 로드 시 댓글 목록을 자동으로 불러오기
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             printReplies(1, 10, true); // 초기 페이지 번호와 사이즈를 설정하여 호출
         });
 
@@ -205,7 +415,7 @@
         });
 
         // 댓글 등록 버튼 클릭 시
-        registerBtn.addEventListener("click", function(e) {
+        registerBtn.addEventListener("click", function (e) {
             const replyObj = {
                 boardId: document.getElementById('boardId').value,
                 userId: document.getElementById('userId').value,
@@ -253,17 +463,18 @@
             printReplies(1, 10, true);
         }
 
-        // 댓글 목록 출력 함수
         function printReplies(page, size, reset) {
             const currentUserId = window.loggedInUser ? window.loggedInUser.userId : null;
-            const boardId = document.getElementById('boardId').value;  // boardId 값을 가져옴
+            const boardId = document.getElementById('boardId').value;
+
+            console.log("currentUserId : ", currentUserId)
 
             fetch(`/replies/list`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ boardId: boardId, page: page, size: size })  // 데이터 전송
+                body: JSON.stringify({ boardId: boardId, page: page, size: size })
             })
                 .then(response => response.json())
                 .then(data => {
@@ -272,23 +483,53 @@
                     }
 
                     const replyList = document.getElementById("replyList");
-                    replyList.innerHTML = "";  // 기존 목록 초기화
+                    replyList.innerHTML = "";
 
                     data.forEach(reply => {
                         const replyItem = document.createElement("li");
                         replyItem.classList.add("list-group-item");
 
-                        // 조건에 따라 배경색을 다르게 지정
-                        if (reply.userId == currentUserId) {
-                            replyItem.style.backgroundColor = "#f0f8ff";  // 예를 들어 연한 파란색 배경
+                        // 배경색: 로그인한 사용자의 댓글일 경우
+                        if (reply.userId === currentUserId) {
+                            replyItem.style.backgroundColor = "#f0f8ff";
                         }
 
-                        // 댓글 내용과 작성자를 설정하고, 삭제 버튼은 조건부로 추가
+                        // 댓글 내용과 작성자 표시
                         replyItem.innerHTML = `
-                <strong>${reply.replyer}</strong>: ${reply.content}
-                <br><small>${new Date(reply.createdDate).toLocaleString()}</small>
-                ${reply.userId == currentUserId ? `<button class="removeReplyBtn btn btn-danger float-end btn-sm" onclick="removeReply(${reply.replyId})">댓글삭제</button>` : ''}
-            `;
+                    <input type="hidden" name="loggedInUser" th:data-nickname="${loggedInUser.nickname}>
+                    <input type="hidden" name="replyId" value="${reply.replyId}">
+                    <strong>${reply.replyer}</strong>: ${reply.content}
+                    <br><small>${new Date(reply.createdDate).toLocaleString()}</small>
+                `;
+
+                        // 현재 로그인한 사용자의 댓글일 경우 삭제 버튼 추가
+                        if (reply.userId === currentUserId) {
+                            const deleteButton = document.createElement("button");
+                            deleteButton.classList.add("removeReplyBtn", "btn", "btn-danger", "float-end", "btn-sm");
+                            deleteButton.textContent = "댓글삭제";
+                            deleteButton.onclick = () => removeReply(reply.replyId);
+                            replyItem.appendChild(deleteButton);
+                        } else {
+                            // 다른 사용자의 댓글일 경우 신고 버튼 추가
+                            const reportButton = document.createElement("button");
+                            reportButton.classList.add("reportReplyBtn", "btn", "float-end", "btn-sm", "me-2");
+
+                            // 신고 버튼을 투명하게 설정하고 아이콘 추가
+                            reportButton.style.backgroundColor = "transparent";
+                            reportButton.style.border = "none";
+                            reportButton.style.padding = "0";
+                            reportButton.style.cursor = "pointer";
+
+                            const reportImage = document.createElement("img");
+                            reportImage.src = "/images/report-icon.png";
+                            reportImage.alt = "신고";
+                            reportImage.style.width = "16px";
+                            reportImage.style.height = "16px";
+
+                            reportButton.appendChild(reportImage);
+                            reportButton.onclick = () => openReplyReportModal(reply.replyId, reply.replyer);
+                            replyItem.appendChild(reportButton);
+                        }
 
                         replyList.appendChild(replyItem);
                     });

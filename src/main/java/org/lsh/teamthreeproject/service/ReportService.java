@@ -13,4 +13,7 @@ public interface ReportService {
 
     // 신고 삭제 메서드
     void deleteReport(long reportId);
+
+    // 신고 저장 메서드
+    void saveReport(ReportDTO reportDTO);
 }

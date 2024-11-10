@@ -8,12 +8,8 @@ import lombok.extern.log4j.Log4j2;
 import org.lsh.teamthreeproject.dto.BoardDTO;
 import org.lsh.teamthreeproject.dto.BoardImageDTO;
 import org.lsh.teamthreeproject.dto.UserDTO;
-import org.lsh.teamthreeproject.entity.Board;
-import org.lsh.teamthreeproject.entity.BoardImage;
-import org.lsh.teamthreeproject.entity.User;
-import org.lsh.teamthreeproject.repository.BoardImageRepository;
-import org.lsh.teamthreeproject.repository.BoardRepository;
-import org.lsh.teamthreeproject.repository.UserRepository;
+import org.lsh.teamthreeproject.entity.*;
+import org.lsh.teamthreeproject.repository.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -44,6 +40,9 @@ public class BoardServiceImpl implements BoardService {
     private final BoardImageRepository boardImageRepository;
     private final UserRepository userRepository;
     private final BoardImageServiceImpl boardImageServiceImpl;
+    private final BoardLikeRepository boardLikeRepository;
+    private final BookmarkRepository bookmarkRepository;
+
 
     @Value("${org.lsh.teamthreeproject.path}")
     private String uploadPath;
@@ -283,6 +282,58 @@ public class BoardServiceImpl implements BoardService {
                 .stream()
                 .map(board -> convertEntityToDTO(board)) // 엔티티 -> DTO 변환
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Boolean toggleLike(Long boardId, Long userId) {
+        Optional<BoardLike> existingLike = boardLikeRepository.findByBoardBoardIdAndUserUserId(boardId, userId);
+
+        if (existingLike.isPresent()) { // 좋아요가 이미 있다면
+            BoardLike boardLike = existingLike.get();
+            boardLike.setIsDeleted(!boardLike.getIsDeleted()); // 좋아요 삭제여부 반환
+            boardLikeRepository.save(boardLike);
+            return !boardLike.getIsDeleted();
+        } else {
+            // 새로운 좋아요 추가
+            BoardLike newLike = BoardLike.builder()
+                    .id(new BoardLikeId(boardId, userId))
+                    .board(new Board(boardId))
+                    .user(new User(userId))
+                    .isDeleted(false)
+                    .build();
+            boardLikeRepository.save(newLike);
+            return true;
+        }
+    }
+
+    @Override
+    public Boolean toggleBookmark(Long boardId, Long userId) {
+        Optional<BookMark> existingBookmark = bookmarkRepository.findByBoardBoardIdAndUserUserId(boardId, userId);
+
+        if (existingBookmark.isPresent()) { // 존재하면
+            // 북마크가 이미 존재하면 삭제하여 해제
+            bookmarkRepository.delete(existingBookmark.get());
+            return false;
+        } else { // 존재하지 않으면
+            // 새로운 북마크 추가
+            BookMark newBookmark = BookMark.builder()
+                    .id(new BookMarkId(boardId, userId))
+                    .board(new Board(boardId))
+                    .user(new User(userId))
+                    .build();
+            bookmarkRepository.save(newBookmark);
+            return true;
+        }
+    }
+
+    public Boolean isLikedByUser(Long boardId, Long userId) {
+        return boardLikeRepository.findByBoardBoardIdAndUserUserId(boardId, userId)
+                .map(boardLike -> !boardLike.getIsDeleted())
+                .orElse(false);
+    }
+
+    public Boolean isBookmarkedByUser(Long boardId, Long userId) {
+        return bookmarkRepository.findByBoardBoardIdAndUserUserId(boardId, userId).isPresent();
     }
 
     private BoardDTO convertEntityToDTO(Board board) {

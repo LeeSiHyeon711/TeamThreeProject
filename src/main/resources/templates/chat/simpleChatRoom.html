@@ -9,8 +9,12 @@
     <div id="chatSection" class="text-center">
       <!-- 신고, 퇴장 버튼을 오른쪽 상단에 배치 -->
       <div class="d-flex justify-content-end mb-3">
-        <button id="reportButton" class="btn btn-warning mr-2" onclick="openReportModal()">신고</button>
-        <button id="exitButton" class="btn btn-danger" onclick="exitChat()">퇴장</button>
+        <!-- 신고 버튼, 클릭 시 chatRoomId를 openChatRoomReportModal로 전달 -->
+        <button onclick="openChatRoomReportModal()" class="btn btn-danger"
+                style="padding: 5px; border: none; background-color: transparent;">
+          <img src="/images/report-icon.png" alt="신고하기" style="width: 24px; height: 24px;">
+        </button>
+        <button id="exitButton" class="btn btn-warning" onclick="exitChat()">퇴장</button>
       </div>
       <!-- 채팅 메시지 박스 -->
       <div id="chatBox" class="mb-3 p-3" style="width: 100%; height: 400px; border: 1px solid #ccc; overflow-y: scroll; background-color: #f5f5f5; border-radius: 8px;"></div>
@@ -26,7 +30,8 @@
   </div>
 
   <!-- 신고 모달 -->
-  <div class="modal fade" id="reportModal" tabindex="-1" role="dialog" aria-labelledby="reportModalLabel" aria-hidden="true">
+  <div class="modal fade" id="reportModal" tabindex="-1" role="dialog" aria-labelledby="reportModalLabel" aria-hidden="true"
+       th:data-room-id="${roomId}" th:data-nickname="${nickname}">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
@@ -36,6 +41,11 @@
           </button>
         </div>
         <div class="modal-body">
+          <!-- 숨김 필드에 데이터 설정 -->
+          <input type="hidden" id="reportType" value="chatRoom"> <!-- 신고 유형은 chatRoom으로 고정 -->
+          <input type="hidden" id="reportId"> <!-- 신고 대상 ID 저장 -->
+          <input type="hidden" id="reportedBy"> <!-- 신고자 닉네임 저장 -->
+
           <label for="reportReason">신고 사유:</label>
           <textarea id="reportReason" class="form-control" rows="4" placeholder="신고 사유를 입력하세요"></textarea>
         </div>
@@ -81,8 +91,13 @@
       }
     });
 
-    // 신고 모달 열기
-    function openReportModal() {
+    // 모달 열기 함수
+    function openChatRoomReportModal() {
+      // hidden 필드에 데이터 설정
+      document.getElementById('reportId').value = document.getElementById('reportModal').getAttribute('data-room-id');
+      document.getElementById('reportedBy').value = document.getElementById('reportModal').getAttribute('data-nickname');
+
+      // 모달 열기
       $('#reportModal').modal('show');
     }
 
@@ -90,6 +105,8 @@
     function closeReportModal() {
       $('#reportModal').modal('hide');
       document.getElementById('reportReason').value = '';
+      document.getElementById('reportType').value = '';
+      document.getElementById('reportId').value = '';
     }
 
     // 신고 제출 함수
@@ -117,6 +134,7 @@
         alert("신고 사유를 입력하세요.");
       }
     }
+
 
     // 메시지 전송 함수
     function sendMessage() {

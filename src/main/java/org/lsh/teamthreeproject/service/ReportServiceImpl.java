@@ -1,35 +1,35 @@
 package org.lsh.teamthreeproject.service;
 
+import jakarta.transaction.Transactional;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.lsh.teamthreeproject.dto.ReportDTO;
-import org.lsh.teamthreeproject.entity.ReportedBoard;
-import org.lsh.teamthreeproject.entity.ReportedChatRoom;
-import org.lsh.teamthreeproject.entity.ReportedReply;
-import org.lsh.teamthreeproject.repository.ReportedBoardRepository;
-import org.lsh.teamthreeproject.repository.ReportedChatRoomRepository;
-import org.lsh.teamthreeproject.repository.ReportedReplyRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.lsh.teamthreeproject.entity.*;
+import org.lsh.teamthreeproject.repository.*;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Data
+@Transactional
+@RequiredArgsConstructor
+@Log4j2
 public class ReportServiceImpl implements ReportService {
 
+    private final BoardRepository boardRepository;
+    private final UserRepository userRepository;
+    private final ChatRoomRepository chatRoomRepository;
+    private final ReplyRepository replyRepository;
     private final ReportedBoardRepository reportedBoardRepository;
     private final ReportedChatRoomRepository reportedChatRoomRepository;
     private final ReportedReplyRepository reportedReplyRepository;
 
-    @Autowired
-    public ReportServiceImpl(ReportedBoardRepository reportedBoardRepository,
-                             ReportedChatRoomRepository reportedChatRoomRepository,
-                             ReportedReplyRepository reportedReplyRepository) {
-        this.reportedBoardRepository = reportedBoardRepository;
-        this.reportedChatRoomRepository = reportedChatRoomRepository;
-        this.reportedReplyRepository = reportedReplyRepository;
-    }
     // 통합 조회 메서드
     @Override
     public List<ReportDTO> getAllReports() {
@@ -80,25 +80,85 @@ public class ReportServiceImpl implements ReportService {
     // 신고 삭제 메서드
     @Override
     public void deleteReport(long reportId) {
-        // 신고 ID에 해당하는 신고가 존재하는지 확인
         Optional<ReportedBoard> boardReport = reportedBoardRepository.findById(reportId);
         if (boardReport.isPresent()) {
             reportedBoardRepository.delete(boardReport.get());
-            return; // 삭제 완료 후 종료
+            return;
         }
 
         Optional<ReportedChatRoom> chatRoomReport = reportedChatRoomRepository.findById(reportId);
         if (chatRoomReport.isPresent()) {
             reportedChatRoomRepository.delete(chatRoomReport.get());
-            return; // 삭제 완료 후 종료
+            return;
         }
 
         Optional<ReportedReply> replyReport = reportedReplyRepository.findById(reportId);
         if (replyReport.isPresent()) {
             reportedReplyRepository.delete(replyReport.get());
-            return; // 삭제 완료 후 종료
         }
-
-        // 삭제할 신고가 없을 경우 적절한 예외 처리를 추가할 수 있음
     }
+
+    // 신고 저장 메서드
+    @Override
+    public void saveReport(ReportDTO reportDTO) {
+        log.info("!!!!!!!!!!!!!!!!!!!!!!!!!Received report data: {}", reportDTO); // 추가된 로그
+
+        String reportType = reportDTO.getType();
+        String reason = reportDTO.getReason();
+        String reportedUserName = reportDTO.getReportedUserName();
+
+        log.info("!!!!!!!!!!!!!!!!!!!!!!!!!Report Type: {}, Reason: {}, Reported User: {}", reportType, reason, reportedUserName);
+
+        User reportedUser = userRepository.findByNickname(reportedUserName)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+
+        switch (reportType) {
+            case "Board":
+                log.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!Processing Board report"); // 추가된 로그
+                Board board = boardRepository.findById(reportDTO.getReportId())
+                        .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
+                ReportedBoard boardReport = ReportedBoard.builder()
+                        .board(board)
+                        .reportedUser(reportedUser)
+                        .reason(reason)
+                        .reportedDate(LocalDateTime.now())
+                        .build();
+                reportedBoardRepository.save(boardReport);
+                break;
+
+            case "ChatRoom":
+                log.info("!!!!!!!!!!!!!!!!!!!!!!!!!!Processing ChatRoom report"); // 추가된 로그
+                ChatRoom chatRoom = chatRoomRepository.findByChatRoomId(reportDTO.getReportId())
+                        .orElseThrow(() -> {
+                            log.error("해당 채팅방이 존재하지 않습니다. 요청된 채팅방 ID: " + reportDTO.getReportId());
+                            return new IllegalArgumentException("해당 채팅방이 존재하지 않습니다.");
+                        });
+                ReportedChatRoom chatRoomReport = ReportedChatRoom.builder()
+                        .chatRoom(chatRoom)
+                        .reportedBy(reportedUser)
+                        .reason(reason)
+                        .reportedDate(LocalDateTime.now())
+                        .build();
+                reportedChatRoomRepository.save(chatRoomReport);
+                break;
+
+            case "Reply":
+                log.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Processing Reply report"); // 추가된 로그
+                Reply reply = replyRepository.findById(reportDTO.getReportId())
+                        .orElseThrow(() -> new IllegalArgumentException("해당 댓글이 존재하지 않습니다."));
+                ReportedReply replyReport = ReportedReply.builder()
+                        .reply(reply)
+                        .reportedBy(reportedUser)
+                        .reason(reason)
+                        .reportedDate(LocalDateTime.now())
+                        .build();
+                reportedReplyRepository.save(replyReport);
+                break;
+
+            default:
+                log.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Invalid report type: " + reportType); // 추가된 로그
+                throw new IllegalArgumentException("Invalid report type: " + reportType);
+        }
+    }
+
 }

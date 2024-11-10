@@ -1,5 +1,6 @@
 package org.lsh.teamthreeproject.controller;
 
+import lombok.extern.log4j.Log4j2;
 import org.lsh.teamthreeproject.dto.ReportDTO;
 import org.lsh.teamthreeproject.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Log4j2
 @Controller
 @RequestMapping("/reports")
 public class ReportController {
@@ -39,4 +41,20 @@ public class ReportController {
         reportService.deleteReport(reportId);
         return ResponseEntity.noContent().build(); // 204 No Content 응답 반환
     }
+
+    @PostMapping("/api/report") // 신고 요청을 처리하는 POST 엔드포인트
+    @ResponseBody
+    public ResponseEntity<String> createReport(@RequestBody ReportDTO reportDTO) {
+        try {
+            log.info("Received ReportDTO: {}", reportDTO); // RequestBody가 제대로 매핑되는지 확인
+
+            reportService.saveReport(reportDTO); // 신고 저장 로직을 호출
+            return ResponseEntity.ok("신고가 접수되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("해당 채팅방이 존재하지 않습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("신고 처리 중 오류가 발생했습니다.");
+        }
+    }
+
 }

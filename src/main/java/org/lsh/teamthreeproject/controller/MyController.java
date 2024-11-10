@@ -1,5 +1,6 @@
 package org.lsh.teamthreeproject.controller;
 
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.lsh.teamthreeproject.dto.UserDTO;
@@ -53,9 +54,22 @@ public class MyController {
     }
 
     @PostMapping("/delete")
-    public String deleteUser(@RequestParam Long userId) {
+    public String deleteUser(HttpSession session) {
         log.info("delete");
-        userService.deleteUser(userId);
+
+        // 세션에서 user 정보 가져오기
+        UserDTO user = (UserDTO) session.getAttribute("user");
+        if (user == null) {
+            return "redirect:/user/login";
+        }
+
+        // userId를 이용해 유저 삭제
+        userService.deleteUser(user.getUserId());
+
+        // 세션 무효화 (로그아웃 효과)
+        session.invalidate();
+
         return "redirect:/user/login";
     }
+
 }

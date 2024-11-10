@@ -1,5 +1,7 @@
 package org.lsh.teamthreeproject.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -30,10 +32,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Controller
 @RequiredArgsConstructor
@@ -49,8 +48,20 @@ public class BoardController {
     // 내가 쓴 게시물 하나 조회
     @GetMapping("/myBoard/{userId}/{boardId}")
     public String readOneBoard(@PathVariable("boardId") Long boardId,
-                               Model model) {
-        boardService.increaseVisitCount(boardId);
+                               Model model,
+                               HttpSession session) {
+        Set<Long> viewedBoards = (Set<Long>) session.getAttribute("viewedBoards");
+        if (viewedBoards == null) {
+            viewedBoards = new HashSet<>();
+            session.setAttribute("viewedBoards", viewedBoards);
+        }
+
+        if (!viewedBoards.contains(boardId)) {
+            boardService.increaseVisitCount(boardId);
+            viewedBoards.add(boardId);
+            session.setAttribute("viewedBoards", viewedBoards);
+        }
+
         Optional<BoardDTO> board = boardService.readBoard(boardId);
         if (board.isPresent()) {
             model.addAttribute("board", board.get());
@@ -75,18 +86,20 @@ public class BoardController {
         return "redirect:/mypage";
     }
 
+    // 게시글 리스트 조회
     @GetMapping("/list")
     public String listGET(Model model, HttpSession session) {
         List<BoardDTO> boardList = boardService.findAllByOrderByRegDateDesc(); // 모든 게시글을 가져오는 서비스 메소드
-        model.addAttribute("boardList", boardList);
-
-        // 세션에서 유저 정보를 가져와 모델에 추가
         UserDTO loggedInUser = (UserDTO) session.getAttribute("user");
-        model.addAttribute("loggedInUser", loggedInUser);
 
+        boardList.forEach(board -> {
+            board.setIsLiked(boardService.isLikedByUser(board.getBoardId(), loggedInUser.getUserId()));
+            board.setIsBookmarked(boardService.isBookmarkedByUser(board.getBoardId(), loggedInUser.getUserId()));
+        });
+        model.addAttribute("loggedInUser", loggedInUser);
+        model.addAttribute("boardList", boardList);
         return "board/list"; // list.html 파일을 반환하도록 설정
     }
-
 
     // 게시글 등록 페이지 이동
     @GetMapping("/register")
@@ -148,31 +161,72 @@ public class BoardController {
 
     // 게시글 읽기 페이지 이동
     @GetMapping("/read/{boardId}")
-    public String read(@PathVariable Long boardId, Model model, HttpSession session) {
+    public String read(@PathVariable Long boardId,
+                       Model model,
+                       HttpSession session) {
+
+        // 세션에서 이미 조회한 게시물 ID 목록을 가져옴
+        Set<Long> viewedBoards = (Set<Long>) session.getAttribute("viewedBoards");
+        if (viewedBoards == null) {
+            viewedBoards = new HashSet<>();
+            session.setAttribute("viewedBoards", viewedBoards);
+        }
+
+        // 조회한 적 없는 게시물일 경우 조회수 증가
+        if (!viewedBoards.contains(boardId)) {
+            boardService.visitCount(boardId);
+            viewedBoards.add(boardId);
+            session.setAttribute("viewedBoards", viewedBoards); // 세션에 업데이트
+            log.info("조회수를 증가시켰습니다. 현재 viewedBoards: " + viewedBoards);
+        } else {
+            log.info("이미 조회한 게시물입니다. 조회수를 증가하지 않습니다.");
+        }
+
         // 게시글 읽기
         BoardDTO boardDTO = boardService.readOne(boardId);
-        boardService.visitCount(boardId);
 
-        // 세션에서 로그인한 유저의 정보 가져오기
+        // 세션에서 로그인한 사용자 정보를 가져오기
         UserDTO loggedInUser = (UserDTO) session.getAttribute("user");
-        log.info("LoggedIn User in Session: " + loggedInUser);  // 유저 정보 로그 출력
-
-        if (loggedInUser != null) {
-            model.addAttribute("loggedInUser", loggedInUser); // 모델에 유저 정보 추가
-        } else {
-            // 로그인 정보가 없으면 로그인 페이지로 리다이렉트
+        if (loggedInUser == null) {
+            // 유저 정보가 없으면 로그인 페이지로 리다이렉트
             return "redirect:/user/login";
         }
 
-        model.addAttribute("dto", boardDTO);  // 게시글 정보를 모델에 추가
+        // 유저 정보가 있으면 boardDTO에 nickname을 설정
+        String nickname = loggedInUser.getNickname();
+        boardDTO.setNickname(nickname);
+
+        // JSON 직렬화
+        String loggedInUserJson = "";
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            loggedInUserJson = mapper.writeValueAsString(loggedInUser);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace(); // 예외 로그를 출력하거나, 적절한 처리를 추가할 수 있음
+        }
+
+        // 모델에 유저 정보 추가
+        model.addAttribute("loggedInUser", loggedInUser);  // UserDTO 객체
+        model.addAttribute("loggedInUserJson", loggedInUserJson);  // JSON 문자열 그대로 전달
+
+        // 로그인한 유저가 현재 게시글을 '좋아요'와 '북마크' 했는지 여부 설정
+        boolean isLiked = boardService.isLikedByUser(boardId, loggedInUser.getUserId());
+        boolean isBookmarked = boardService.isBookmarkedByUser(boardId, loggedInUser.getUserId());
+
+        // 게시글 DTO에 좋아요와 북마크 상태 설정
+        boardDTO.setIsLiked(isLiked);
+        boardDTO.setIsBookmarked(isBookmarked);
+
+        // 게시글 정보를 모델에 추가
+        model.addAttribute("board", boardDTO);
 
         // 댓글 리스트 추가
         List<ReplyDTO> replies = replyService.readRepliesByBoardId(boardId);
-        model.addAttribute("replies", replies);
+        model.addAttribute("reply", replies);
 
-        return "board/read";  // read.html 파일로 이동
+        // read.html 파일로 이동
+        return "board/read";
     }
-
 
 
     private List<String> fileUpload(UploadFileDTO uploadFileDTO){
@@ -272,5 +326,26 @@ public class BoardController {
     public String modify(BoardDTO boardDTO, HttpServletRequest request) {
         boardService.update(boardDTO, request);
         return "redirect:/list";
+    }
+
+    // 좋아요, 북마크
+    @PostMapping("/toggleLike")
+    public ResponseEntity<Boolean> toggleLike(@RequestParam Long boardId, @RequestParam Long userId) {
+        log.info("toggleLike called with boardId: {}, userId: {}", boardId, userId); // 로깅 추가
+
+        Boolean isLiked = boardService.toggleLike(boardId, userId);
+        log.info("toggleLike result: {}", isLiked);
+
+        return ResponseEntity.ok(isLiked);
+    }
+
+    @PostMapping("/toggleBookmark")
+    public ResponseEntity<Boolean> toggleBookmark(@RequestParam Long boardId, @RequestParam Long userId) {
+        log.info("toggleBookmark called with boardId: {}, userId: {}", boardId, userId); // 로깅 추가
+
+        Boolean isBookmarked = boardService.toggleBookmark(boardId, userId);
+        log.info("toggleBookmark result: {}", isBookmarked);
+
+        return ResponseEntity.ok(isBookmarked);
     }
 }

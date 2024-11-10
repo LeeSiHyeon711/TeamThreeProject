@@ -61,6 +61,10 @@ public class Board {
     @OneToMany(mappedBy = "board", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<BookMark> bookmarks;
 
+    public Board(Long boardId) {
+        this.boardId = boardId;
+    }
+
     public void UpdateVisitCount() {
         this.visitCount++;
     }
