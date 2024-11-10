@@ -186,7 +186,7 @@
                     <!-- 숨김 필드에 데이터 설정 -->
                     <input type="hidden" id="replyReportType" value="Reply"> <!-- 신고 유형 -->
                     <input type="hidden" id="replyReportId"> <!-- 댓글 신고 대상 ID -->
-                    <input type="hidden" id="replyReportedBy" th:value="${loggedInUser.nickname}">
+                    <input type="hidden" id="replyReportedBy">
 
                     <label for="replyReportReason">신고 사유:</label>
                     <textarea id="replyReportReason" class="form-control" rows="4" placeholder="신고 사유를 입력하세요"></textarea>
@@ -212,7 +212,7 @@
 
     <script>
         // 전역 변수 선언
-        let currentUserId = window.loggedInUser ? window.loggedInUser.userId : null;
+        let currentUserNickname = window.loggedInUser ? window.loggedInUser.nickname : null;
         let boardId;
         let nickname;
         let replyId;
@@ -237,9 +237,9 @@
             nickname = userNickname;  // 전역 변수에 저장
 
             document.getElementById('replyReportId').value = replyId;
-            document.getElementById('replyReportedBy').value = nickname; // 현재 로그인한 사용자 ID
+            document.getElementById('replyReportedBy').value = currentUserNickname; // 현재 로그인한 사용자 ID
 
-            console.log("Logged-in user (ID):", nickname);
+            console.log("Logged-in user (ID):", currentUserNickname);
             console.log("Reply ID:", replyId);
 
             $('#replyReportModal').modal('show');
