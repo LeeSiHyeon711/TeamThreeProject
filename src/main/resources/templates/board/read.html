@@ -122,22 +122,22 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">댓글 쓰기</h5>
+                    <h5 class="modal-title">Register Reply</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="input-group mb-3">
-                        <span class="input-group-text">댓글 내용</span>
+                        <span class="input-group-text">Reply Text</span>
                         <input type="text" class="form-control replyText" name="content" placeholder="댓글을 입력하세요" required>
                     </div>
                     <div class="input-group mb-3">
-                        <span class="input-group-text">작성자</span>
+                        <span class="input-group-text">Replyer</span>
                         <input type="text" class="form-control replyer" name="replyer" placeholder="작성자 이름" th:value="${loggedInUser.nickname}" readonly>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary registerBtn">등록</button>
-                    <button type="button" class="btn btn-outline-dark closeRegisterBtn">취소</button>
+                    <button type="button" class="btn btn-primary registerBtn">Register</button>
+                    <button type="button" class="btn btn-outline-dark closeRegisterBtn">Close</button>
                 </div>
             </div>
         </div>
@@ -186,7 +186,7 @@
                     <!-- 숨김 필드에 데이터 설정 -->
                     <input type="hidden" id="replyReportType" value="Reply"> <!-- 신고 유형 -->
                     <input type="hidden" id="replyReportId"> <!-- 댓글 신고 대상 ID -->
-                    <input type="hidden" id="replyReportedBy">
+                    <input type="hidden" id="replyReportedBy" th:value="${loggedInUser.nickname}">
 
                     <label for="replyReportReason">신고 사유:</label>
                     <textarea id="replyReportReason" class="form-control" rows="4" placeholder="신고 사유를 입력하세요"></textarea>
@@ -212,8 +212,6 @@
 
     <script>
         // 전역 변수 선언
-        let currentUserNickname = window.loggedInUser ? window.loggedInUser.nickname : null;
-        let boardId;
         let nickname;
         let replyId;
 
@@ -237,9 +235,9 @@
             nickname = userNickname;  // 전역 변수에 저장
 
             document.getElementById('replyReportId').value = replyId;
-            document.getElementById('replyReportedBy').value = currentUserNickname; // 현재 로그인한 사용자 ID
+            document.getElementById('replyReportedBy').value = nickname; // 현재 로그인한 사용자 ID
 
-            console.log("Logged-in user (ID):", currentUserNickname);
+            console.log("Logged-in user (ID):", nickname);
             console.log("Reply ID:", replyId);
 
             $('#replyReportModal').modal('show');
@@ -397,9 +395,8 @@
 
         // 페이지 로드 시 댓글 목록을 자동으로 불러오기
         document.addEventListener("DOMContentLoaded", function () {
-            printReplies(1, 10, true); // 초기 페이지 번호와 사이즈를 설정하여 호출
+            loadReplies(); // 초기 페이지와 크기를 설정하여 호출
         });
-
 
         // 댓글 등록 모달 관련
         const registerModal = new bootstrap.Modal(document.querySelector(".registerModal"));
@@ -458,51 +455,57 @@
                 });
         }
 
-        // 댓글 목록 갱신 함수
-        function updateReplyList() {
-            printReplies(1, 10, true);
-        }
+        // 전역 변수 선언
+        let currentUserId = window.loggedInUser ? window.loggedInUser.userId : null;
+        let boardId = document.getElementById("boardId").value || null;
+        let currentPage = 0;
+        const pageSize = 3;  // 한 페이지당 댓글 수
+        let isLoading = false;
+        let hasMoreReplies = true;  // 댓글이 더 있는지 확인
 
-        function printReplies(page, size, reset) {
-            const currentUserId = window.loggedInUser ? window.loggedInUser.userId : null;
-            const boardId = document.getElementById('boardId').value;
 
-            console.log("currentUserId : ", currentUserId)
 
-            fetch(`/replies/list`, {
-                method: "POST",
+
+
+
+        // 전역 변수 추가
+        let lastReplyIds = []; // 이전 페이지의 댓글 ID들을 저장
+
+        // 댓글 목록을 로드하는 함수
+        function loadReplies() {
+            if (isLoading || !hasMoreReplies) return;
+
+            isLoading = true;
+
+            fetch(`/replies/list?boardId=${boardId}&page=${currentPage}&size=${pageSize}`, {
+                method: "GET",
                 headers: {
                     "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ boardId: boardId, page: page, size: size })
+                }
             })
                 .then(response => response.json())
                 .then(data => {
-                    if (!Array.isArray(data)) {
-                        throw new Error("Received data is not an array");
+
+                    // 댓글 목록을 content 필드에서 가져옴
+                    const replies = data.content;
+                    if (!Array.isArray(replies)) throw new Error("Received data is not an array");
+
+                    // last가 true면 더 이상 댓글이 없는 것으로 설정
+                    if (data.last) {
+                        hasMoreReplies = false;
                     }
 
                     const replyList = document.getElementById("replyList");
-                    replyList.innerHTML = "";
 
-                    data.forEach(reply => {
+                    // 댓글 추가
+                    replies.forEach(reply => {
                         const replyItem = document.createElement("li");
                         replyItem.classList.add("list-group-item");
-
-                        // 배경색: 로그인한 사용자의 댓글일 경우
-                        if (reply.userId === currentUserId) {
-                            replyItem.style.backgroundColor = "#f0f8ff";
-                        }
-
-                        // 댓글 내용과 작성자 표시
                         replyItem.innerHTML = `
-                    <input type="hidden" name="loggedInUser" th:data-nickname="${loggedInUser.nickname}>
-                    <input type="hidden" name="replyId" value="${reply.replyId}">
-                    <strong>${reply.replyer}</strong>: ${reply.content}
-                    <br><small>${new Date(reply.createdDate).toLocaleString()}</small>
-                `;
-
-                        // 현재 로그인한 사용자의 댓글일 경우 삭제 버튼 추가
+                <strong>${reply.replyer}</strong>: ${reply.content}
+                <br><small>${new Date(reply.createdDate).toLocaleString()}</small>
+            `;
+                        // 삭제 버튼 또는 신고 버튼 추가
                         if (reply.userId === currentUserId) {
                             const deleteButton = document.createElement("button");
                             deleteButton.classList.add("removeReplyBtn", "btn", "btn-danger", "float-end", "btn-sm");
@@ -510,14 +513,10 @@
                             deleteButton.onclick = () => removeReply(reply.replyId);
                             replyItem.appendChild(deleteButton);
                         } else {
-                            // 다른 사용자의 댓글일 경우 신고 버튼 추가
                             const reportButton = document.createElement("button");
                             reportButton.classList.add("reportReplyBtn", "btn", "float-end", "btn-sm", "me-2");
-
-                            // 신고 버튼을 투명하게 설정하고 아이콘 추가
                             reportButton.style.backgroundColor = "transparent";
                             reportButton.style.border = "none";
-                            reportButton.style.padding = "0";
                             reportButton.style.cursor = "pointer";
 
                             const reportImage = document.createElement("img");
@@ -525,17 +524,38 @@
                             reportImage.alt = "신고";
                             reportImage.style.width = "16px";
                             reportImage.style.height = "16px";
-
                             reportButton.appendChild(reportImage);
+
                             reportButton.onclick = () => openReplyReportModal(reply.replyId, reply.replyer);
                             replyItem.appendChild(reportButton);
                         }
-
                         replyList.appendChild(replyItem);
                     });
+
+                    if (replies.length > 0) {
+                        currentPage++; // 다음 페이지로 증가
+                    }
+
+                    isLoading = false;
                 })
-                .catch(error => console.error("Error loading replies:", error));
+                .catch(error => {
+                    console.error("Error loading replies:", error);
+                    isLoading = false;
+                });
         }
+
+
+        // 페이지 로드 시 초기 댓글 불러오기
+        document.addEventListener("DOMContentLoaded", function () {
+            loadReplies();
+        });
+
+        // 스크롤 이벤트로 댓글 로드
+        $(window).scroll(function () {
+            if ($(window).scrollTop() + $(window).height() >= $(document).height() - 50) {
+                loadReplies();
+            }
+        });
 
 
         // 댓글 삭제 기능

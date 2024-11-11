@@ -11,6 +11,10 @@ import org.lsh.teamthreeproject.entity.Reply;
 import org.lsh.teamthreeproject.entity.User;
 import org.lsh.teamthreeproject.repository.BoardRepository;
 import org.lsh.teamthreeproject.repository.ReplyRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -117,6 +121,25 @@ public class ReplyServiceImpl implements ReplyService {
         return false;
     }
 
+    @Override
+    public List<ReplyDTO> getRepliesByBoardId(Long boardId, int page, int size) {
+        // pageRequest 객체 생성, 페이징 정보와 정렬 방식 설정
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDate"));
+        // boardId에 해당하는 댓글 페이징 방식으로 데이터베이스에서 조회
+        return replyRepository.findByBoardBoardId(boardId, pageRequest)
+                .stream()
+                .map(this::convertEntityToDTO)
+                .toList();
+    }
+
+    @Override
+    public Page<ReplyDTO> findRepliesByBoardId(Long boardId, Pageable pageable) {
+        // repository에서 Page<Reply>를 가져온 다음, DTO로 변환하여 반환
+        Page<Reply> replyPage = replyRepository.findByBoardBoardId(boardId, pageable);
+        return replyPage.map(this::convertEntityToDTO); // Page 내부 요소들을 ReplyDTO로 변환
+    }
+
+
     private Reply convertDTOToEntity(ReplyDTO replyDTO) {
         Board board = new Board();
         board.setBoardId(replyDTO.getBoardId());
@@ -161,6 +184,7 @@ public class ReplyServiceImpl implements ReplyService {
                 .isDeleted(reply.getIsDeleted())
                 .boardId(reply.getBoard().getBoardId())
                 .userId(reply.getUser().getUserId())
+                .replyer(reply.getUser().getNickname()) // 작성자 정보 추가
                 .build();
     }
 }

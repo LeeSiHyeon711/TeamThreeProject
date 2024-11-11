@@ -4,17 +4,23 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.lsh.teamthreeproject.dto.BoardDTO;
 import org.lsh.teamthreeproject.dto.ReplyDTO;
+import org.lsh.teamthreeproject.dto.ReplyRequestDTO;
 import org.lsh.teamthreeproject.dto.UserDTO;
 import org.lsh.teamthreeproject.service.BoardService;
 import org.lsh.teamthreeproject.service.ReplyService;
 import org.lsh.teamthreeproject.service.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -59,14 +65,16 @@ public class ReplyController {
     }
 
     // 댓글 조회 기능 추가
-    @PostMapping("/replies/list")
-    @ResponseBody
-    public ResponseEntity<List<ReplyDTO>> getRepliesByBoard(@RequestBody ReplyDTO replyRequest) {
-        Long boardId = replyRequest.getBoardId();
-        List<ReplyDTO> replies = replyService.readRepliesByBoardId(boardId);
-
+    @GetMapping("/replies/list")
+    public ResponseEntity<Page<ReplyDTO>> getReplies(
+            @RequestParam Long boardId,
+            @RequestParam int page,
+            @RequestParam int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ReplyDTO> replies = replyService.findRepliesByBoardId(boardId, pageable);
         return ResponseEntity.ok(replies);
     }
+
 
     // 댓글 삭제
     @DeleteMapping("/replies/{replyId}")
