@@ -33,6 +33,18 @@
         }
     </style>
     <div class="container" id="board-container">
+        <!-- 드롭다운 필터 메뉴 추가 -->
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>게시판</h2>
+                <select id="filter-select" class="form-select w-auto">
+                    <option value="all">전체 게시글</option>
+                    <option value="liked">좋아요한 게시글</option>
+                    <option value="bookmarked">북마크한 게시글</option>
+<!--                    <option value="oldest">오래된 순</option>-->
+                </select>
+            </div>
+        </div>
         <div class="row" id="board-list">
             <!-- 초기 게시물들이 로드됨 -->
             <div th:each="board : ${boardPage.content}" class="col-md-4 mb-4">
@@ -81,6 +93,7 @@
         const pageSize = 9;
         let isLoading = false; // 중복 호출 방지
         let loggedInUser = null;
+        let allBoards = []; // 전체 게시물 데이터를 저장하는 변수
 
         // 페이지 로드 시 로그인한 유저 정보를 불러오는 함수
         function fetchLoggedInUser() {
@@ -103,41 +116,63 @@
         // 게시물 카드를 생성하는 함수
         function createBoardHTML(board, loggedInUser) {
             return `
-        <div class="col-md-4 mb-4">
-            <div class="card text-bg-dark mb-3">
-                ${board.fileNames.length > 0 ? `
-                    <a href="/read/${board.boardId}" class="btn btn-primary" style="outline: none; border: none;">
-                        <img src="/upload/${board.fileNames[0]}" class="card-img-top" alt="이미지"
-                             style="outline: none; border: none; object-fit: cover; width: 100%; height: 200px;">
-                    </a>` : ''}
-                <div class="card-body">
-                    <h5 class="card-title">${board.title}</h5>
-                    <div class="d-flex justify-content-end">
-                        <button type="button" class="btn btn-link p-0"
-                                data-board-id="${board.boardId}"
-                                data-user-id="${loggedInUser ? loggedInUser.userId : ''}"
-                                onclick="toggleIcon(this, 'like')">
-                            <img src="${board.isLiked ? '/images/like-icon-checked.png' : '/images/like-icon.png'}"
-                                 data-src-checked="/images/like-icon-checked.png"
-                                 data-src-unchecked="/images/like-icon.png"
-                                 class="icon" alt="좋아요"
-                                 style="width: 24px; height: 24px;">
-                        </button>
+            <div class="col-md-4 mb-4">
+                <div class="card text-bg-dark mb-3">
+                    ${board.fileNames.length > 0 ? `
+                        <a href="/read/${board.boardId}" class="btn btn-primary" style="outline: none; border: none;">
+                            <img src="/upload/${board.fileNames[0]}" class="card-img-top" alt="이미지"
+                                 style="outline: none; border: none; object-fit: cover; width: 100%; height: 200px;">
+                        </a>` : ''}
+                    <div class="card-body">
+                        <h5 class="card-title">${board.title}</h5>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-link p-0"
+                                    data-board-id="${board.boardId}"
+                                    data-user-id="${loggedInUser ? loggedInUser.userId : ''}"
+                                    onclick="toggleIcon(this, 'like')">
+                                <img src="${board.isLiked ? '/images/like-icon-checked.png' : '/images/like-icon.png'}"
+                                     data-src-checked="/images/like-icon-checked.png"
+                                     data-src-unchecked="/images/like-icon.png"
+                                     class="icon" alt="좋아요"
+                                     style="width: 24px; height: 24px;">
+                            </button>
 
-                        <button type="button" class="btn btn-link p-0 ml-3"
-                                data-board-id="${board.boardId}"
-                                data-user-id="${loggedInUser ? loggedInUser.userId : ''}"
-                                onclick="toggleIcon(this, 'bookmark')">
-                            <img src="${board.isBookmarked ? '/images/bookmark-icon-checked.png' : '/images/bookmark-icon.png'}"
-                                 data-src-checked="/images/bookmark-icon-checked.png"
-                                 data-src-unchecked="/images/bookmark-icon.png"
-                                 class="icon" alt="북마크"
-                                 style="width: 24px; height: 24px;">
-                        </button>
+                            <button type="button" class="btn btn-link p-0 ml-3"
+                                    data-board-id="${board.boardId}"
+                                    data-user-id="${loggedInUser ? loggedInUser.userId : ''}"
+                                    onclick="toggleIcon(this, 'bookmark')">
+                                <img src="${board.isBookmarked ? '/images/bookmark-icon-checked.png' : '/images/bookmark-icon.png'}"
+                                     data-src-checked="/images/bookmark-icon-checked.png"
+                                     data-src-unchecked="/images/bookmark-icon.png"
+                                     class="icon" alt="북마크"
+                                     style="width: 24px; height: 24px;">
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>`;
+            </div>`;
+        }
+
+        // 필터링된 게시물 카드들을 렌더링하는 함수
+        function renderFilteredBoards(filter, boards, loggedInUser) {
+            const boardContainer = document.getElementById('board-list');
+            boardContainer.innerHTML = ''; // 기존 게시물 초기화
+
+            boards.forEach(board => {
+                // 필터 조건에 맞는지 확인
+                if ((filter === "liked" && board.isLiked) ||
+                    (filter === "bookmarked" && board.isBookmarked) ||
+                    (filter === "all")) {
+                    const boardHTML = createBoardHTML(board, loggedInUser);
+                    boardContainer.insertAdjacentHTML('beforeend', boardHTML);
+                }
+            });
+        }
+
+        // 필터 선택 시 호출되는 함수
+        function handleFilterChange(event) {
+            const selectedFilter = event.target.value;
+            renderFilteredBoards(selectedFilter, allBoards, loggedInUser);
         }
 
         // 게시물을 추가로 로드하는 함수
@@ -155,7 +190,12 @@
                 .then(response => response.json())
                 .then(data => {
                     if (!data || !data.content) throw new Error("게시물을 불러오지 못했습니다.");
+
                     if (data.content.length > 0) {
+                        // 받아온 데이터를 allBoards에 추가
+                        allBoards = allBoards.concat(data.content); // 새로 로드한 데이터를 allBoards에 추가
+
+                        // 렌더링
                         data.content.forEach(board => {
                             const boardHTML = createBoardHTML(board, loggedInUser); // 카드 HTML 생성
                             document.getElementById('board-list').insertAdjacentHTML('beforeend', boardHTML);
@@ -208,7 +248,11 @@
 
         // 페이지 로드 시 유저 정보를 불러오고 첫 페이지 게시물 로드
         document.addEventListener("DOMContentLoaded", () => {
-            fetchLoggedInUser().then(() => loadMoreBoards(currentPage));
+            fetchLoggedInUser().then(() => loadMoreBoards(currentPage)).then(() => {
+                // allBoards가 채워진 후 필터 초기화
+                const filterSelect = document.getElementById('filter-select');
+                filterSelect.addEventListener('change', handleFilterChange);
+            });
         });
 
         // 스크롤 이벤트에 핸들러 추가
@@ -218,6 +262,7 @@
             }
         });
     </script>
+
 
 </div>
 </html>
