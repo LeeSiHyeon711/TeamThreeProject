@@ -60,6 +60,7 @@
     var stompClient = null;
     var nickname = new URLSearchParams(window.location.search).get('nickname');
     var chatRoomId = new URLSearchParams(window.location.search).get('roomId');
+    var profileImagePath = new URLSearchParams(window.location.search).get('profileImagePath');
 
     // 웹소켓 연결 함수
     function connect() {
@@ -78,7 +79,8 @@
         stompClient.send("/app/chat.addUser", {}, JSON.stringify({
           chatRoomId: chatRoomId,
           sender: nickname,
-          content: `${nickname}님이 채팅방에 입장했습니다!`
+          content: `${nickname}님이 채팅방에 입장했습니다!`,
+          profileImagePath: profileImagePath
         }));
       });
     }
@@ -135,7 +137,6 @@
       }
     }
 
-
     // 메시지 전송 함수
     function sendMessage() {
       var messageContent = document.querySelector('#messageInput').value.trim();
@@ -144,7 +145,8 @@
           chatRoomId: chatRoomId,
           sender: nickname,
           content: messageContent,
-          sendDate: new Date().toISOString() // ISO 8601 형식으로 설정
+          sendDate: new Date().toISOString(), // ISO 8601 형식으로 설정
+          profileImagePath: profileImagePath
         };
         stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(chatMessage));
         document.querySelector('#messageInput').value = '';
@@ -161,7 +163,8 @@
           chatRoomId: chatRoomId,
           sender: nickname,
           content: `${nickname}님이 채팅방에서 퇴장했습니다.`,
-          sendDate: now // ISO 형식으로 전송
+          sendDate: now, // ISO 형식으로 전송
+          profileImagePath: profileImagePath
         }));
 
         setTimeout(function() {
@@ -177,33 +180,47 @@
     // 메시지를 화면에 표시하는 함수
     function showMessage(message) {
       var chatBox = document.querySelector('#chatBox');
+      var messageWrapper = document.createElement('div');
+      messageWrapper.classList.add('d-flex', 'align-items-center', 'mb-3');
+      if (message.sender === nickname) {
+        messageWrapper.style.justifyContent = 'flex-end';
+      } else {
+        messageWrapper.style.justifyContent = 'flex-start';
+      }
+
+      var profileImageElement = document.createElement('img');
+      profileImageElement.src = message.profileImagePath ? '/upload/' + message.profileImagePath : '/images/noImage.jpg';
+      profileImageElement.alt = '프로필 이미지';
+      profileImageElement.style.width = '60px';
+      profileImageElement.style.height = '60px';
+      profileImageElement.style.borderRadius = '50%';
+      profileImageElement.style.marginRight = '10px';
+
       var messageElement = document.createElement('div');
+      var timestamp = new Date(message.sendDate).toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul' });
+      messageElement.textContent = `[${timestamp}] ${message.sender}: ${message.content}`;
+      messageElement.style.padding = '8px';
+      messageElement.style.borderRadius = '10px';
+      messageElement.style.maxWidth = '70%';
+
       if (message.sender === nickname) {
         messageElement.classList.add('my-message');
         messageElement.style.textAlign = 'right';
         messageElement.style.backgroundColor = '#94e3bf';
-        messageElement.style.padding = '8px';
-        messageElement.style.margin = '5px 10px';
-        messageElement.style.borderRadius = '10px';
-        messageElement.style.maxWidth = '70%';
-        messageElement.style.marginLeft = 'auto';
+        messageWrapper.appendChild(messageElement);
+        messageWrapper.appendChild(profileImageElement);
       } else {
         messageElement.classList.add('other-message');
         messageElement.style.textAlign = 'left';
         messageElement.style.backgroundColor = '#ffffff';
-        messageElement.style.padding = '8px';
-        messageElement.style.margin = '5px 10px';
-        messageElement.style.borderRadius = '10px';
-        messageElement.style.maxWidth = '70%';
-        messageElement.style.marginRight = 'auto';
+        messageWrapper.appendChild(profileImageElement);
+        messageWrapper.appendChild(messageElement);
       }
-      var timestamp = new Date(message.sendDate).toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul' });
-      messageElement.textContent = `[${timestamp}] ${message.sender}: ${message.content}`;
-      chatBox.appendChild(messageElement);
+
+      chatBox.appendChild(messageWrapper);
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     window.onload = connect;
   </script>
 </div>
-

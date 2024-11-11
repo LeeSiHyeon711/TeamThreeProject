@@ -20,6 +20,7 @@ public class ChatMessageDTO {
     private String sender; // User 엔티티의 nickname 사용
     private String content;
     private LocalDateTime sendDate;
+    private String profileImagePath; // 프로필 이미지 경로 추가
 
     // DTO -> Entity 변환 메서드
     public static ChatMessage toEntity(ChatMessageDTO dto, ChatRoom chatRoom, User sender) {
@@ -40,6 +41,7 @@ public class ChatMessageDTO {
                 .sender(chatMessage.getSender().getNickname())
                 .content(chatMessage.getContent())
                 .sendDate(chatMessage.getSentDate())
+                .profileImagePath(chatMessage.getSender().getProfileImagePath()) // 프로필 이미지 경로 설정
                 .build();
     }
 }

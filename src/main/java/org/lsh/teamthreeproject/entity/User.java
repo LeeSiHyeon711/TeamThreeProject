@@ -70,4 +70,9 @@ public class User {
         this.userId = userId;
     }
 
+    // 프로필 이미지 경로 반환 메소드 추가
+    public String getProfileImagePath() {
+        // 사용자가 프로필 이미지를 설정하지 않았을 경우 기본 이미지 경로를 반환
+        return profileImage != null && !profileImage.isEmpty() ? profileImage : "/images/noImage.jpg";
+    }
 }

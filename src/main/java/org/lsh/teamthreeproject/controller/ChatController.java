@@ -44,8 +44,11 @@ public class ChatController {
     //채팅방 입장
     @GetMapping("/chat")
     public String chatPage(@RequestParam("roomId") Long roomId, @RequestParam("nickname") String nickname, Model model) {
+        User user = userService.findUserIdByNickname(nickname)
+                .orElseThrow(() -> new IllegalArgumentException("해당 닉네임의 유저가 존재하지 않습니다: " + nickname));
         model.addAttribute("roomId", roomId);
         model.addAttribute("nickname", nickname);
+        model.addAttribute("profileImagePath", user.getProfileImagePath()); // 프로필 이미지 경로 추가
         return "chat/simpleChatRoom";
     }
 
@@ -60,6 +63,9 @@ public class ChatController {
         User sender = userService.findUserIdByNickname(message.getSender())
                 .orElseThrow(() -> new IllegalArgumentException("해당 닉네임의 유저가 존재하지 않습니다: " + message.getSender()));
 
+        // 프로필 이미지 경로 설정
+        message.setProfileImagePath(sender.getProfileImagePath());
+
         // 채팅 메시지 엔티티로 변환 후 저장
         ChatMessage chatMessage = ChatMessageDTO.toEntity(message, chatRoom, sender);
         chatMessageService.saveMessage(chatMessage);
@@ -68,16 +74,19 @@ public class ChatController {
         return ChatMessageDTO.fromEntity(chatMessage);
     }
 
-
-
     //채팅방 입장 API
     @MessageMapping("/chat.addUser")
     @SendTo("/topic/public")
     public ChatMessageDTO addUser(ChatMessageDTO message) {
+        // 유저 조회
+        User sender = userService.findUserIdByNickname(message.getSender())
+                .orElseThrow(() -> new IllegalArgumentException("해당 닉네임의 유저가 존재하지 않습니다: " + message.getSender()));
+
         // 한국 시간으로 변환
         ZonedDateTime zonedDateTime = LocalDateTime.now().atZone(ZoneId.of("Asia/Seoul"));
         message.setSendDate(zonedDateTime.toLocalDateTime()); // DTO의 sendDate 설정
         message.setContent(message.getSender() + "님이 채팅방에 입장했습니다!");
+        message.setProfileImagePath(sender.getProfileImagePath()); // 프로필 이미지 경로 설정
         return message;
     }
 
@@ -85,7 +94,12 @@ public class ChatController {
     @MessageMapping("/chat.removeUser")
     @SendTo("/topic/public")
     public ChatMessageDTO removeUser(ChatMessageDTO message) {
+        // 유저 조회
+        User sender = userService.findUserIdByNickname(message.getSender())
+                .orElseThrow(() -> new IllegalArgumentException("해당 닉네임의 유저가 존재하지 않습니다: " + message.getSender()));
+
         message.setContent(message.getSender() + "님이 채팅방에서 퇴장했습니다.");
+        message.setProfileImagePath(sender.getProfileImagePath()); // 프로필 이미지 경로 설정
         return message;
     }
 
