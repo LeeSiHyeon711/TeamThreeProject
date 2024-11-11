@@ -18,6 +18,11 @@ import org.lsh.teamthreeproject.service.ReplyService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -88,18 +93,25 @@ public class BoardController {
 
     // 게시글 리스트 조회
     @GetMapping("/list")
-    public String listGET(Model model, HttpSession session) {
-        List<BoardDTO> boardList = boardService.findAllByOrderByRegDateDesc(); // 모든 게시글을 가져오는 서비스 메소드
+    public String listGET(Model model, HttpSession session, @PageableDefault(size = 9) Pageable pageable) {
         UserDTO loggedInUser = (UserDTO) session.getAttribute("user");
+        Long userId = (loggedInUser != null) ? loggedInUser.getUserId() : null;
+        Page<BoardDTO> boardPage = boardService.findAllByOrderByRegDateDesc(pageable, userId);
 
-        boardList.forEach(board -> {
-            board.setIsLiked(boardService.isLikedByUser(board.getBoardId(), loggedInUser.getUserId()));
-            board.setIsBookmarked(boardService.isBookmarkedByUser(board.getBoardId(), loggedInUser.getUserId()));
-        });
+        if (loggedInUser != null) {
+            // 로그인된 유저일 경우에만 좋아요와 북마크 여부 설정
+            boardPage.forEach(board -> {
+                board.setIsLiked(boardService.isLikedByUser(board.getBoardId(), loggedInUser.getUserId()));
+                board.setIsBookmarked(boardService.isBookmarkedByUser(board.getBoardId(), loggedInUser.getUserId()));
+            });
+        }
+
         model.addAttribute("loggedInUser", loggedInUser);
-        model.addAttribute("boardList", boardList);
+        model.addAttribute("boardPage", boardPage);
+
         return "board/list"; // list.html 파일을 반환하도록 설정
     }
+
 
     // 게시글 등록 페이지 이동
     @GetMapping("/register")
@@ -348,4 +360,5 @@ public class BoardController {
 
         return ResponseEntity.ok(isBookmarked);
     }
+
 }

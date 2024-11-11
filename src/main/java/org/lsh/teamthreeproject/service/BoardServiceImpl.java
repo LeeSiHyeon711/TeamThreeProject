@@ -14,6 +14,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -336,6 +338,18 @@ public class BoardServiceImpl implements BoardService {
         return bookmarkRepository.findByBoardBoardIdAndUserUserId(boardId, userId).isPresent();
     }
 
+    @Override
+    public Page<BoardDTO> findAllByOrderByRegDateDesc(Pageable pageable, Long userId) {
+        Page<Board> boards = boardRepository.findAllByOrderByRegDateDesc(pageable);
+        return boards.map(board -> {
+            BoardDTO dto = convertEntityToDTO(board);
+            dto.setIsLiked(isLikedByUser(board.getBoardId(), userId));
+            dto.setIsBookmarked(isBookmarkedByUser(board.getBoardId(), userId));
+            return dto;
+        });
+    }
+
+
     private BoardDTO convertEntityToDTO(Board board) {
         // 파일 이름 리스트 생성
         List<String> fileNames = board.getBoardImages().stream()
@@ -363,5 +377,41 @@ public class BoardServiceImpl implements BoardService {
                 .images(images)       // 이미지 DTO 리스트 추가
                 .build();
     }
+
+    // userId를 추가로 받아서 처리하는 새 메서드
+    private BoardDTO convertEntityToDTOWithUserId(Board board, Long userId) {
+        List<String> fileNames = board.getBoardImages().stream()
+                .map(BoardImage::getImageUrl)
+                .collect(Collectors.toList());
+
+        List<BoardImageDTO> images = board.getBoardImages().stream()
+                .map(image -> BoardImageDTO.builder()
+                        .boardId(board.getBoardId())
+                        .imageUrl(image.getImageUrl())
+                        .build())
+                .collect(Collectors.toList());
+
+        Boolean isLiked = boardLikeRepository.findByBoardBoardIdAndUserUserId(board.getBoardId(), userId)
+                .map(boardLike -> !boardLike.getIsDeleted())
+                .orElse(false);
+        Boolean isBookmarked = bookmarkRepository.findByBoardBoardIdAndUserUserId(board.getBoardId(), userId)
+                .isPresent();
+
+        return BoardDTO.builder()
+                .boardId(board.getBoardId())
+                .title(board.getTitle())
+                .content(board.getContent())
+                .purchaseLink(board.getPurchaseLink())
+                .regDate(board.getRegDate())
+                .visitCount(board.getVisitCount())
+                .userId(board.getUser().getUserId())
+                .userLoginId(board.getUser().getLoginId())
+                .fileNames(fileNames)
+                .images(images)
+                .isLiked(isLiked)
+                .isBookmarked(isBookmarked)
+                .build();
+    }
+
 
 }

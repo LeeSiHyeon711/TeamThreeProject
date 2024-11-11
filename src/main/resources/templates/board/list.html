@@ -6,6 +6,17 @@
 
 <div layout:fragment="content">
     <style>
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        .gallery img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            object-fit: cover;
+        }
         a.btn-primary:focus,
         a.btn-primary:active {
             outline-color: #f5f5f5; /* 이미지 배경색과 일치 */
@@ -21,59 +32,149 @@
             border: none; /* 불필요한 테두리 제거 */
         }
     </style>
-    <div class="container">
-        <div class="row">
-            <!-- 게시글 카드 반복 -->
-            <div th:each="board : ${boardList}" class="col-md-4 mb-4">
-                <div class="card text-bg-dark mb-3">
-                    <!-- fileNames 리스트가 null이 아니고, 빈 리스트가 아닐 때만 이미지 표시 -->
-                    <th:block th:if="${board.fileNames != null and board.fileNames.size() > 0}">
-                        <!-- 이미지 경로를 서버에서 제공하도록 설정 -->
-                        <a th:href="@{'/read/' + ${board.boardId}}" class="btn btn-primary" style="outline: none; border: none;">
-                            <img th:src="@{/upload/{fileName}(fileName=${board.fileNames[0]})}" class="card-img-top" alt="이미지" style="outline: none; border: none;">
-                        </a>
-                    </th:block>
-                    <div class="card-body">
-                        <h5 class="card-title" th:text="${board.title}">게시글 제목</h5>
-                        <!-- 좋아요 및 북마크 버튼 -->
-                        <div class="d-flex justify-content-end">
-                            <!-- HTML 요소에 데이터 속성으로 boardId와 userId를 설정합니다 -->
-                            <button type="button" class="btn btn-link p-0"
-                                    th:data-board-id="${board.boardId}"
-                                    th:data-user-id="${loggedInUser.userId}"
-                                    onclick="toggleIcon(this, 'like')">
-                                <!--                                <img th:src="@{/images/like-icon.png}"-->
-                                <img th:src="${board.isLiked ? '/images/like-icon-checked.png' : '/images/like-icon.png'}"
-                                     data-src-checked="/images/like-icon-checked.png"
-                                     data-src-unchecked="/images/like-icon.png"
-                                     class="icon" alt="좋아요"
-                                     style="width: 24px; height: 24px;">
-                            </button>
+    <div class="container" id="board-container">
+        <div class="row" id="board-list">
+            <!-- 초기 게시물들이 로드됨 -->
+            <div th:each="board : ${boardPage.content}" class="col-md-4 mb-4">
+                <div class="gallery">
+                    <div class="card text-bg-dark mb-3">
+                        <th:block th:if="${board.fileNames != null and board.fileNames.size() > 0}">
+                            <a th:href="@{'/read/' + ${board.boardId}}" class="btn btn-primary" style="outline: none; border: none;">
+                                <img th:src="@{/upload/{fileName}(fileName=${board.fileNames[0]})}" class="card-img-top" alt="이미지" style="outline: none; border: none;">
+                            </a>
+                        </th:block>
+                        <div class="card-body">
+                            <h5 class="card-title" th:text="${board.title}">게시글 제목</h5>
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-link p-0"
+                                        th:data-board-id="${board.boardId}"
+                                        th:data-user-id="${loggedInUser?.userId}"
+                                        onclick="toggleIcon(this, 'like')">
+                                    <img th:src="${board.isLiked ? '/images/like-icon-checked.png' : '/images/like-icon.png'}"
+                                         data-src-checked="/images/like-icon-checked.png"
+                                         data-src-unchecked="/images/like-icon.png"
+                                         class="icon" alt="좋아요"
+                                         style="width: 24px; height: 24px;">
+                                </button>
 
-                            <button type="button" class="btn btn-link p-0 ml-3"
-                                    th:data-board-id="${board.boardId}"
-                                    th:data-user-id="${loggedInUser.userId}"
-                                    onclick="toggleIcon(this, 'bookmark')">
-                                <!--                                <img th:src="@{/images/bookmark-icon.png}"-->
-                                <img th:src="${board.isBookmarked ? '/images/bookmark-icon-checked.png' : '/images/bookmark-icon.png'}"
-                                     data-src-checked="/images/bookmark-icon-checked.png"
-                                     data-src-unchecked="/images/bookmark-icon.png"
-                                     class="icon" alt="북마크"
-                                     style="width: 24px; height: 24px;">
-                            </button>
+                                <button type="button" class="btn btn-link p-0 ml-3"
+                                        th:data-board-id="${board.boardId}"
+                                        th:data-user-id="${loggedInUser?.userId}"
+                                        onclick="toggleIcon(this, 'bookmark')">
+                                    <img th:src="${board.isBookmarked ? '/images/bookmark-icon-checked.png' : '/images/bookmark-icon.png'}"
+                                         data-src-checked="/images/bookmark-icon-checked.png"
+                                         data-src-unchecked="/images/bookmark-icon.png"
+                                         class="icon" alt="북마크"
+                                         style="width: 24px; height: 24px;">
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <!-- JavaScript for icon toggle and other functionalities -->
     <script>
+        let currentPage = 0;
+        const pageSize = 9;
+        let isLoading = false; // 중복 호출 방지
+        let loggedInUser = null;
+
+        // 페이지 로드 시 로그인한 유저 정보를 불러오는 함수
+        function fetchLoggedInUser() {
+            return fetch('/api/user/current')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch logged-in user information');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    loggedInUser = data; // 불러온 유저 정보를 전역 변수에 저장
+                    console.log("Logged-in user:", loggedInUser); // 콘솔에 출력해서 확인해보기
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        // 게시물 카드를 생성하는 함수
+        function createBoardHTML(board, loggedInUser) {
+            return `
+        <div class="col-md-4 mb-4">
+            <div class="card text-bg-dark mb-3">
+                ${board.fileNames.length > 0 ? `
+                    <a href="/read/${board.boardId}" class="btn btn-primary" style="outline: none; border: none;">
+                        <img src="/upload/${board.fileNames[0]}" class="card-img-top" alt="이미지"
+                             style="outline: none; border: none; object-fit: cover; width: 100%; height: 200px;">
+                    </a>` : ''}
+                <div class="card-body">
+                    <h5 class="card-title">${board.title}</h5>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-link p-0"
+                                data-board-id="${board.boardId}"
+                                data-user-id="${loggedInUser ? loggedInUser.userId : ''}"
+                                onclick="toggleIcon(this, 'like')">
+                            <img src="${board.isLiked ? '/images/like-icon-checked.png' : '/images/like-icon.png'}"
+                                 data-src-checked="/images/like-icon-checked.png"
+                                 data-src-unchecked="/images/like-icon.png"
+                                 class="icon" alt="좋아요"
+                                 style="width: 24px; height: 24px;">
+                        </button>
+
+                        <button type="button" class="btn btn-link p-0 ml-3"
+                                data-board-id="${board.boardId}"
+                                data-user-id="${loggedInUser ? loggedInUser.userId : ''}"
+                                onclick="toggleIcon(this, 'bookmark')">
+                            <img src="${board.isBookmarked ? '/images/bookmark-icon-checked.png' : '/images/bookmark-icon.png'}"
+                                 data-src-checked="/images/bookmark-icon-checked.png"
+                                 data-src-unchecked="/images/bookmark-icon.png"
+                                 class="icon" alt="북마크"
+                                 style="width: 24px; height: 24px;">
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+        }
+
+        // 게시물을 추가로 로드하는 함수
+        function loadMoreBoards(page) {
+            if (isLoading) return;
+            isLoading = true;
+
+            fetch(`/api/boards?page=${page}&size=${pageSize}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ loggedInUser: loggedInUser })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data || !data.content) throw new Error("게시물을 불러오지 못했습니다.");
+                    if (data.content.length > 0) {
+                        data.content.forEach(board => {
+                            const boardHTML = createBoardHTML(board, loggedInUser); // 카드 HTML 생성
+                            document.getElementById('board-list').insertAdjacentHTML('beforeend', boardHTML);
+                        });
+                        currentPage++; // 페이지 번호 증가
+                    }
+                    isLoading = false;
+                })
+                .catch(error => {
+                    console.error("게시물 로드 실패:", error);
+                    isLoading = false;
+                });
+        }
+
+        // 좋아요 및 북마크 아이콘을 토글하는 함수
         function toggleIcon(button, type) {
             const img = $(button).find('img');
-            const boardId = $(button).data('board-id');  // 데이터 속성에서 boardId 가져오기
-            const userId = $(button).data('user-id');    // 데이터 속성에서 userId 가져오기
+            const boardId = $(button).data('board-id');
+            const userId = $(button).data('user-id');
 
             console.log("boardId: ", boardId, "userId: ", userId);
 
@@ -93,7 +194,6 @@
                     userId: userId
                 },
                 success: function (isActive) {
-                    // true면 활성화, false면 비활성화 이미지로 전환
                     const checkedSrc = img.attr('data-src-checked');
                     const uncheckedSrc = img.attr('data-src-unchecked');
                     img.attr('src', isActive ? checkedSrc : uncheckedSrc);
@@ -105,7 +205,20 @@
                 }
             });
         }
+
+        // 페이지 로드 시 유저 정보를 불러오고 첫 페이지 게시물 로드
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchLoggedInUser().then(() => loadMoreBoards(currentPage));
+        });
+
+        // 스크롤 이벤트에 핸들러 추가
+        window.addEventListener('scroll', () => {
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+                loadMoreBoards(currentPage);
+            }
+        });
     </script>
+
 </div>
 </html>
 

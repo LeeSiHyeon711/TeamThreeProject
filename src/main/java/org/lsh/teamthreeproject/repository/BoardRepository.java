@@ -1,6 +1,8 @@
 package org.lsh.teamthreeproject.repository;
 
 import org.lsh.teamthreeproject.entity.Board;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -12,6 +14,7 @@ import java.util.Optional;
 
 @Repository
 public interface BoardRepository extends JpaRepository<Board, Long> {
+    Page<Board> findAllByOrderByRegDateDesc(Pageable pageable); // 최신순으로 페이지 조회
     Optional<Board> findById(Long id);
     List<Board> findByUserUserId(Long userId);
     @EntityGraph(attributePaths = {"imageSet"})

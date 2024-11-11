@@ -7,6 +7,8 @@ import org.lsh.teamthreeproject.entity.Board;
 import org.lsh.teamthreeproject.entity.BoardImage;
 import org.lsh.teamthreeproject.entity.User;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
@@ -34,6 +36,8 @@ public interface BoardService {
     Boolean toggleBookmark(Long boardId, Long userId);
     Boolean isLikedByUser(Long boardId, Long userId);
     Boolean isBookmarkedByUser(Long boardId, Long userId);
+    Page<BoardDTO> findAllByOrderByRegDateDesc(Pageable pageable, Long userId);
+
 
     default Board dtoToEntity(BoardDTO boardDTO, UserDTO userDTO) {
         // User 객체를 생성하여 필요한 정보를 설정
