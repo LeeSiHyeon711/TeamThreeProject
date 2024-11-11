@@ -142,9 +142,9 @@
                         <tr th:each="bookmark, iterStat : ${bookmarks}">
                             <th scope="row" th:text="${iterStat.count}">번호</th>
 
-                            <!-- 제목 링크 - bookmark.board가 null이 아닌 경우에만 표시 -->
+                            <!-- 제목 링크 - bookmark.boardId가 null이 아닌 경우에만 표시 -->
                             <td th:if="${bookmark.boardId != null}">
-                                <a th:href="@{/myBoard/{userId}/{boardId}(userId=${bookmark.userId}, boardId=${bookmark.boardId})}"
+                                <a th:href="@{/read/{boardId}(boardId=${bookmark.boardId})}"
                                    th:text="${bookmark.title}">제목</a>
                             </td>
                             <!-- board가 null인 경우를 대비하여 제목을 대체 텍스트로 표시 -->
