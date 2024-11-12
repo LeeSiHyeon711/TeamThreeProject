@@ -47,43 +47,7 @@
         </div>
         <div class="row" id="board-list">
             <!-- 초기 게시물들이 로드됨 -->
-            <div th:each="board : ${boardPage.content}" class="col-md-4 mb-4">
-                <div class="gallery">
-                    <div class="card text-bg-dark mb-3">
-                        <th:block th:if="${board.fileNames != null and board.fileNames.size() > 0}">
-                            <a th:href="@{'/read/' + ${board.boardId}}" class="btn btn-primary" style="outline: none; border: none;">
-                                <img th:src="@{/upload/{fileName}(fileName=${board.fileNames[0]})}" class="card-img-top" alt="이미지" style="outline: none; border: none;">
-                            </a>
-                        </th:block>
-                        <div class="card-body">
-                            <h5 class="card-title" th:text="${board.title}">게시글 제목</h5>
-                            <div class="d-flex justify-content-end">
-                                <button type="button" class="btn btn-link p-0"
-                                        th:data-board-id="${board.boardId}"
-                                        th:data-user-id="${loggedInUser?.userId}"
-                                        onclick="toggleIcon(this, 'like')">
-                                    <img th:src="${board.isLiked ? '/images/like-icon-checked.png' : '/images/like-icon.png'}"
-                                         data-src-checked="/images/like-icon-checked.png"
-                                         data-src-unchecked="/images/like-icon.png"
-                                         class="icon" alt="좋아요"
-                                         style="width: 24px; height: 24px;">
-                                </button>
-
-                                <button type="button" class="btn btn-link p-0 ml-3"
-                                        th:data-board-id="${board.boardId}"
-                                        th:data-user-id="${loggedInUser?.userId}"
-                                        onclick="toggleIcon(this, 'bookmark')">
-                                    <img th:src="${board.isBookmarked ? '/images/bookmark-icon-checked.png' : '/images/bookmark-icon.png'}"
-                                         data-src-checked="/images/bookmark-icon-checked.png"
-                                         data-src-unchecked="/images/bookmark-icon.png"
-                                         class="icon" alt="북마크"
-                                         style="width: 24px; height: 24px;">
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div th:each="board : ${boardPage.content}" class="col-md-4 mb-4"></div>
         </div>
     </div>
         <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
