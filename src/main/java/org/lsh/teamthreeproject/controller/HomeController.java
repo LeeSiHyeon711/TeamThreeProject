@@ -55,19 +55,22 @@ public class HomeController {
 
     // 마이 페이지 입장
     @GetMapping("/mypage")
-    public String showMyPage(HttpSession session,
-                             Model model) {
+    public String showMyPage(HttpSession session, Model model) {
         // 세션에서 userDTO 객체 가져오기
         UserDTO user = (UserDTO) session.getAttribute("user");
+
+        // 디버그 로그 추가
+        System.out.println("User retrieved from session: " + (user != null ? user.getUserId() : "No user in session"));
 
         if (user == null) {
             return "redirect:/user/login";
         }
 
         // 사용자의 게시물 목록을 가져오기 위해 BoardService 사용
-        List<BoardDTO> boards = boardService.findBoardsByUserId(user.getUserId()); // findBoardsByUserId는 사용자 ID로 게시물 리스트를 반환하는 메서드
+        List<BoardDTO> boards = boardService.findBoardsByUserId(user.getUserId());
         List<ReplyDTO> replies = replyService.readRepliesByUserId(user.getUserId());
         List<BookmarkDTO> bookmarks = bookmarkService.readUserBookmarks(user.getUserId());
+
         // 모델에 사용자 정보와 게시물 목록 추가
         model.addAttribute("user", user);
         model.addAttribute("boards", boards);
@@ -76,6 +79,5 @@ public class HomeController {
 
         return "/my/mypage";
     }
-
 
 }

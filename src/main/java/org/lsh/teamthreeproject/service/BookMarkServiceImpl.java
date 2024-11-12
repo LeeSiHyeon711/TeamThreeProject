@@ -7,6 +7,8 @@ import org.lsh.teamthreeproject.entity.BookMark;
 import org.lsh.teamthreeproject.entity.BookMarkId;
 import org.lsh.teamthreeproject.repository.BookmarkRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,7 +50,25 @@ public class BookMarkServiceImpl implements BookMarkService {
         bookmarkRepository.deleteById(bookmarkId);
     }
 
+    @Override
+    public Page<BookmarkDTO> getBookmarks(Long userId, Pageable pageable) {
+        // Bookmark 엔티티를 가져와서 DTO로 변환
+        Page<BookMark> bookmarkPage = bookmarkRepository.findByUserUserId(userId, pageable);
+        if (bookmarkPage == null) {
+            System.out.println("ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇbookmarkPage is null right after retrieval in the controller");
+        }
+        return bookmarkPage.map(this::convertEntityToDTO); // 엔티티 -> DTO 변환
+    }
+
     private BookmarkDTO convertEntityToDTO(BookMark bookmark) {
+
+        // 필드 값 확인 출력
+        System.out.println("Board ID: " + (bookmark.getBoard() != null ? bookmark.getBoard().getBoardId() : "null"));
+        System.out.println("User ID: " + (bookmark.getUser() != null ? bookmark.getUser().getUserId() : "null"));
+        System.out.println("Title: " + (bookmark.getBoard() != null ? bookmark.getBoard().getTitle() : "null"));
+        System.out.println("Content: " + (bookmark.getBoard() != null ? bookmark.getBoard().getContent() : "null"));
+        System.out.println("Nickname: " + (bookmark.getUser() != null ? bookmark.getUser().getNickname() : "null"));
+
         return BookmarkDTO.builder()
                 .boardId(bookmark.getBoard().getBoardId())
                 .userId(bookmark.getUser().getUserId())
