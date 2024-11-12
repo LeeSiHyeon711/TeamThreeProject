@@ -103,6 +103,7 @@
                         <tr>
                             <th scope="col">번호</th>
                             <th scope="col">댓글 내용</th>
+                            <th scope="col">댓글 삭제</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -181,7 +182,6 @@
                     return response.json();
                 })
                 .then(data => {
-                    console.log("Fetched data:", data);
                     renderBookmarks(data);
                 })
                 .catch(error => console.error('Fetch error:', error));
