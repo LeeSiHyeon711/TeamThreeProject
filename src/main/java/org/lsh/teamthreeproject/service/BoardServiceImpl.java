@@ -368,6 +368,7 @@ public class BoardServiceImpl implements BoardService {
                 .visitCount(board.getVisitCount())
                 .userId(board.getUser().getUserId())
                 .userLoginId(board.getUser().getLoginId())
+                .nickname(board.getUser().getNickname())
                 .build();
     }
 

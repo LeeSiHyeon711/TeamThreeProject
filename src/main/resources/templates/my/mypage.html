@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <div layout:fragment="content">
     <h1 class="mt-4">My Page</h1>
-
+    <input type="hidden" id="userId" th:value="${user.userId}">
     <div class="accordion" id="myPageAccordion">
         <!-- 회원정보 섹션 -->
         <div class="accordion-item">
@@ -46,7 +46,6 @@
 
         <!-- 내 게시물 섹션 -->
         <div class="accordion-item">
-            <input type="hidden" id="user" th:value="${user.userId}">
             <h2 class="accordion-header" id="headingPosts">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#collapsePosts" aria-expanded="false" aria-controls="collapsePosts">
@@ -91,29 +90,24 @@
                     <table class="table table-hover mt-3">
                         <thead>
                         <tr>
-                            <th scope="col">번호</th>
+                            <th scope="col">게시물로 이동</th>
                             <th scope="col">댓글 내용</th>
                             <th scope="col">댓글 삭제</th>
                         </tr>
                         </thead>
-                        <tbody>
-                        <tr th:each="reply, iterStat : ${replies}">
-                            <th scope="row" th:text="${iterStat.count}">번호</th>
-                            <td th:text="${reply.content}">댓글 내용</td>
-                            <td>
-                                <button type="button" class="btn btn-danger btn-sm"
-                                        th:onclick="'removeReply(' + ${reply.replyId} + ')'">삭제</button>
-                            </td>
-                        </tr>
+                        <tbody id="commentContainer">
+                        <!-- 댓글 데이터가 여기에 삽입될 것임 -->
                         </tbody>
                     </table>
+                    <div id="commentPagination" class="pagination justify-content-center mt-4">
+                        <!-- 페이지네이션 버튼이 여기 생성됨 -->
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- 내 북마크 섹션 -->
         <div class="accordion-item">
-            <input type="hidden" id="userId" th:value="${user.userId}">
             <h2 class="accordion-header" id="headingBookmarks">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#collapseBookmarks" aria-expanded="false"
@@ -249,7 +243,7 @@
                 const postElement = document.createElement('tr');
                 postElement.innerHTML = `
                 <td><a href="/read/${post.boardId}">${post.title}</a></td> <!-- 제목에 링크 추가 -->
-                <td>${post.userLoginId}</td>
+                <td>${post.nickname}</td>
                 <td>${new Date(post.regDate).toLocaleDateString()}</td>
                 <td>
                     <form action="/delete/${post.userId}/${post.boardId}" method="post" onsubmit="return confirm('정말 삭제하시겠습니까?');">
@@ -278,6 +272,96 @@
             }
         }
 
+
+        // 댓글 페이지네이션 구간--------------------------------------------------------
+
+
+
+        document.addEventListener("DOMContentLoaded", function() {
+            // userId를 hidden input에서 가져와 전역 변수로 설정
+            userId = document.getElementById('userId').value;
+
+            // collapseComments 요소가 존재할 경우에만 이벤트 리스너 추가
+            const collapseComments = document.getElementById('collapseComments');
+            if (collapseComments) {
+                collapseComments.addEventListener('show.bs.collapse', function () {
+                    const page = 0;
+                    fetchComments(page); // 전역 userId 사용
+                });
+            }
+        });
+
+        // 댓글 데이터를 가져오는 함수
+        function fetchComments(page) {
+            fetch(`/api/replies?userId=${userId}&page=${page}`)
+                    .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    renderComments(data);
+                })
+                .catch(error => console.error('Fetch error:', error));
+        }
+
+        // 댓글 데이터를 화면에 렌더링
+        function renderComments(data) {
+            const commentContainer = document.getElementById('commentContainer');
+            commentContainer.innerHTML = '';
+
+            data.content.forEach((reply) => {
+                const commentElement = document.createElement('tr');
+                commentElement.innerHTML = `
+            <td>
+                <a href="/read/${reply.boardId}" target="_blank">${reply.boardTitle}</a><br> <!-- 게시물 제목 표시 -->
+            </td>
+            <td>${reply.content} <!-- 댓글 내용 표시 --></td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm"
+                 onclick="deleteReply(${reply.replyId})">삭제</button>
+            </td>
+        `;
+                commentContainer.appendChild(commentElement);
+            });
+
+            commentRenderPagination(data.totalPages);
+        }
+
+        // 페이지네이션 버튼을 렌더링
+        function commentRenderPagination(totalPages) {
+            const pagination = document.getElementById('commentPagination');
+            pagination.innerHTML = '';
+            for (let i = 0; i < totalPages; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.className = 'page-link';
+                pageButton.textContent = i + 1;
+                pageButton.addEventListener('click', function() {
+                    fetchComments(i);
+                });
+                pagination.appendChild(pageButton);
+            }
+        }
+
+        // 댓글 삭제 기능을 위한 함수
+        function deleteReply(replyId) {
+            if (confirm('정말 삭제하시겠습니까?')) {
+                fetch(`/replies/${replyId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) throw new Error('댓글 삭제 실패');
+                        return response.text();
+                    })
+                    .then(message => {
+                        alert(message); // 삭제 성공 메시지
+                        fetchComments(0); // 삭제 후 첫 페이지 댓글 목록을 다시 로드
+                    })
+                    .catch(error => console.error('Delete error:', error));
+            }
+        }
 
     </script>
 </div>

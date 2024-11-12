@@ -18,4 +18,6 @@ public interface ReplyRepository extends JpaRepository<Reply, Long> {
     List<Reply> findByBoard(Board board);
     // boardId로 댓글을 찾아오며 pageable 객체를 통해 페이징 정보를 가져온다.
     Page<Reply> findByBoardBoardId(Long boardId, Pageable pageable);
+    // 마이페이지 댓글 페이징
+    Page<Reply> findByUser_UserId(Long userId, Pageable pageable);
 }

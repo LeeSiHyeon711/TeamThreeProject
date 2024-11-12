@@ -139,6 +139,25 @@ public class ReplyServiceImpl implements ReplyService {
         return replyPage.map(this::convertEntityToDTO); // Page 내부 요소들을 ReplyDTO로 변환
     }
 
+    @Override
+    public Page<ReplyDTO> getReplies(Long userId, Pageable pageable) {
+        Page<Reply> replyPage = replyRepository.findByUser_UserId(userId, pageable);
+
+        return replyPage.map(this::convertEntityToDTO);
+    }
+
+    private ReplyDTO convertEntityToDTO(Reply reply) {
+        return ReplyDTO.builder()
+                .replyId(reply.getReplyId())
+                .content(reply.getContent())
+                .createdDate(reply.getCreatedDate())
+                .isDeleted(reply.getIsDeleted())
+                .boardId(reply.getBoard().getBoardId())
+                .userId(reply.getUser().getUserId())
+                .replyer(reply.getUser().getNickname()) // 작성자 정보 추가
+                .boardTitle(reply.getBoard().getTitle()) // 게시물 제목 추가
+                .build();
+    }
 
     private Reply convertDTOToEntity(ReplyDTO replyDTO) {
         Board board = new Board();
@@ -176,15 +195,5 @@ public class ReplyServiceImpl implements ReplyService {
                 .build();
     }
 
-    private ReplyDTO convertEntityToDTO(Reply reply) {
-        return ReplyDTO.builder()
-                .replyId(reply.getReplyId())
-                .content(reply.getContent())
-                .createdDate(reply.getCreatedDate())
-                .isDeleted(reply.getIsDeleted())
-                .boardId(reply.getBoard().getBoardId())
-                .userId(reply.getUser().getUserId())
-                .replyer(reply.getUser().getNickname()) // 작성자 정보 추가
-                .build();
-    }
+
 }

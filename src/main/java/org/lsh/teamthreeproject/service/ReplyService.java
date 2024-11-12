@@ -21,4 +21,5 @@ public interface ReplyService {
     boolean deleteReply(Long replyId);
     List<ReplyDTO> getRepliesByBoardId(Long boardId, int page, int size);
     Page<ReplyDTO> findRepliesByBoardId(Long boardId, Pageable pageable);
+    Page<ReplyDTO> getReplies(Long userId, Pageable pageable);
 }

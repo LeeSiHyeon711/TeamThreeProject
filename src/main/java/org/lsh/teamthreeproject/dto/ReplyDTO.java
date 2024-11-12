@@ -19,4 +19,5 @@ public class ReplyDTO {
     private Long boardId;
     private Long userId;
     private String replyer; // 작성자 닉네임 추가
+    private String boardTitle;  // 게시물 제목 추가
 }
