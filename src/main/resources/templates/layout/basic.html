@@ -76,8 +76,10 @@
                                     <!-- fileNames 리스트가 null이 아니고, 빈 리스트가 아닐 때만 이미지 표시 -->
                                     <th:block th:if="${board.fileNames != null and board.fileNames.size() > 0}">
                                         <!-- 이미지 경로를 서버에서 제공하도록 설정 -->
-                                        <img th:src="@{/upload/{fileName}(fileName=${board.fileNames[0]})}" class="card-img-top" alt="이미지">
-                                    </th:block>                                    <!-- 순위와 제목을 한 줄에 표시 -->
+                                        <img th:src="@{/upload/{fileName}(fileName=${board.fileNames[0]})}" class="card-img-top" alt="이미지"
+                                             style="outline: none; border: none; object-fit: cover; width: 100%; height: 250px;">
+                                    </th:block>
+                                    <!-- 순위와 제목을 한 줄에 표시 -->
                                     <p class="mt-2">
                                         <span th:text="${stat.index + 1} + '위 '"></span>
                                         <a th:href="@{/read/{boardId}(boardId=${board.boardId})}" th:text="${board.title}" style="font-size: 14px;">게시물 제목</a>
@@ -91,6 +93,7 @@
                     </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
