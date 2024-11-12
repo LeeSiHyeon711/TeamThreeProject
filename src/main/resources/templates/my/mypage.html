@@ -195,12 +195,12 @@
             data.content.forEach((bookmark, index) => {
                 const bookmarkElement = document.createElement('tr');
                 bookmarkElement.innerHTML = `
-                <th scope="row">${index + 1}</th>
-                <td>${bookmark.title}</td>
-                <td>${bookmark.userNickname}</td>
-                <td>${new Date(bookmark.regDate).toLocaleDateString()}</td>
-                <td><button class="btn btn-danger btn-sm">삭제</button></td>
-            `;
+            <th scope="row">${index + 1}</th>
+            <td><a href="/read/${bookmark.boardId}">${bookmark.title}</a></td> <!-- 제목에 링크 추가 -->
+            <td>${bookmark.userNickname}</td>
+            <td>${new Date(bookmark.regDate).toLocaleDateString()}</td>
+            <td><button class="btn btn-danger btn-sm">삭제</button></td>
+        `;
                 bookmarkContainer.appendChild(bookmarkElement);
             });
 
