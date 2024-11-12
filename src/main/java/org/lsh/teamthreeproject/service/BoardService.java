@@ -37,6 +37,7 @@ public interface BoardService {
     Boolean isLikedByUser(Long boardId, Long userId);
     Boolean isBookmarkedByUser(Long boardId, Long userId);
     Page<BoardDTO> findAllByOrderByRegDateDesc(Pageable pageable, Long userId);
+    Page<BoardDTO> getBoards(Long userId, Pageable pageable);
 
 
     default Board dtoToEntity(BoardDTO boardDTO, UserDTO userDTO) {

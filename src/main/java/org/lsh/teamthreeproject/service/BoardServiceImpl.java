@@ -349,6 +349,27 @@ public class BoardServiceImpl implements BoardService {
         });
     }
 
+    @Override
+    public Page<BoardDTO> getBoards(Long userId, Pageable pageable) {
+        // Board 엔티티를 페이지네이션하여 가져오기
+        Page<Board> boardPage = boardRepository.findByUser_UserId(userId, pageable);
+
+        // Board -> BoardDTO로 변환하여 반환
+        return boardPage.map(this::convertEntityToBoardDTO);
+    }
+
+
+    private BoardDTO convertEntityToBoardDTO(Board board) {
+        return BoardDTO.builder()
+                .boardId(board.getBoardId())
+                .title(board.getTitle())
+                .content(board.getContent())
+                .regDate(board.getRegDate())
+                .visitCount(board.getVisitCount())
+                .userId(board.getUser().getUserId())
+                .userLoginId(board.getUser().getLoginId())
+                .build();
+    }
 
     private BoardDTO convertEntityToDTO(Board board) {
         // 파일 이름 리스트 생성

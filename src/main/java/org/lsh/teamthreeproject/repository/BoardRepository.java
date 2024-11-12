@@ -40,4 +40,6 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     List<Board> findTop10ByPopularity(LocalDateTime fourWeeksAgo);
 
     List<Board> findByUser_UserId(Long userId);
+    Page<Board> findByUser_UserId(Long userId, Pageable pageable);
+
 }

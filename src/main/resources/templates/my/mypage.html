@@ -46,6 +46,7 @@
 
         <!-- 내 게시물 섹션 -->
         <div class="accordion-item">
+            <input type="hidden" id="user" th:value="${user.userId}">
             <h2 class="accordion-header" id="headingPosts">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#collapsePosts" aria-expanded="false" aria-controls="collapsePosts">
@@ -58,30 +59,19 @@
                     <table class="table table-hover mt-3">
                         <thead>
                         <tr>
-                            <th scope="col">번호</th>
                             <th scope="col">제목</th>
                             <th scope="col">작성자</th>
                             <th scope="col">작성 날짜</th>
                             <th scope="col">삭제</th>
                         </tr>
                         </thead>
-                        <tbody>
-                        <!-- 게시글 목록을 반복하여 출력 -->
-                        <tr th:each="board, iterStat : ${boards}">
-                            <th scope="row" th:text="${iterStat.count}"></th> <!-- 순번 -->
-                            <td>
-                                <a th:href="@{'/read/'+ ${board.boardId}}" th:text="${board.title}">제목</a>
-                            </td>
-                            <td th:text="${board.userLoginId}">작성자</td>
-                            <td th:text="${#temporals.format(board.regDate, 'yyyy-MM-dd HH:mm')}">작성 날짜</td>
-                            <td>
-                                <form th:action="@{/delete/{userId}/{boardId}(userId=${board.userId}, boardId=${board.boardId})}" method="post" onsubmit="return confirm('정말 삭제하시겠습니까?');">
-                                    <button type="submit" class="btn btn-danger btn-sm">삭제</button>
-                                </form>
-                            </td>
-                        </tr>
+                        <tbody id="postContainer">
+                        <!-- 게시글 데이터가 여기에 삽입될 것임 -->
                         </tbody>
                     </table>
+                    <div id="boardPagination" class="pagination justify-content-center mt-4">
+                        <!-- 페이지네이션 버튼이 여기 생성됨 -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -137,11 +127,10 @@
                     <table class="table table-hover mt-3">
                         <thead>
                         <tr>
-                            <th scope="col">번호</th>
                             <th scope="col">제목</th>
                             <th scope="col">작성자</th>
                             <th scope="col">작성 날짜</th>
-                            <th scope="col">삭제</th>
+                            <th scope="col">북마크 삭제</th>
                         </tr>
                         </thead>
                         <tbody id="bookmarkContainer">
@@ -192,10 +181,9 @@
             const bookmarkContainer = document.getElementById('bookmarkContainer');
             bookmarkContainer.innerHTML = '';
 
-            data.content.forEach((bookmark, index) => {
+            data.content.forEach((bookmark) => {
                 const bookmarkElement = document.createElement('tr');
                 bookmarkElement.innerHTML = `
-            <th scope="row">${index + 1}</th>
             <td><a href="/read/${bookmark.boardId}">${bookmark.title}</a></td> <!-- 제목에 링크 추가 -->
             <td>${bookmark.userNickname}</td>
             <td>${new Date(bookmark.regDate).toLocaleDateString()}</td>
@@ -221,6 +209,75 @@
                 pagination.appendChild(pageButton);
             }
         }
+
+
+        // 게시물 페이지네이션 구간-------------------------------------------
+
+        document.addEventListener("DOMContentLoaded", function() {
+            // userId를 hidden input에서 가져와 전역 변수로 설정
+            userId = document.getElementById('userId').value;
+
+            // collapsePosts 요소가 존재할 경우에만 이벤트 리스너 추가
+            const collapsePosts = document.getElementById('collapsePosts');
+            if (collapsePosts) {
+                collapsePosts.addEventListener('show.bs.collapse', function () {
+                    const page = 0;
+                    fetchPosts(page); // 전역 userId 사용
+                });
+            }
+        });
+
+        // 게시글 데이터를 가져오는 함수
+        function fetchPosts(page) {
+            fetch(`/api/boards/paged?userId=${userId}&page=${page}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    renderPosts(data);
+                })
+                .catch(error => console.error('Fetch error:', error));
+        }
+
+        // 게시글 데이터를 화면에 렌더링
+        function renderPosts(data) {
+            const postContainer = document.getElementById('postContainer');
+            postContainer.innerHTML = '';
+
+            data.content.forEach((post, index) => {
+                const postElement = document.createElement('tr');
+                postElement.innerHTML = `
+                <td><a href="/read/${post.boardId}">${post.title}</a></td> <!-- 제목에 링크 추가 -->
+                <td>${post.userLoginId}</td>
+                <td>${new Date(post.regDate).toLocaleDateString()}</td>
+                <td>
+                    <form action="/delete/${post.userId}/${post.boardId}" method="post" onsubmit="return confirm('정말 삭제하시겠습니까?');">
+                        <button type="submit" class="btn btn-danger btn-sm">삭제</button>
+                    </form>
+                </td>
+            `;
+                postContainer.appendChild(postElement);
+            });
+
+            boardRenderPagination(data.totalPages);
+        }
+
+        // 페이지네이션 버튼을 렌더링
+        function boardRenderPagination(totalPages) {
+            const pagination = document.getElementById('boardPagination');
+            pagination.innerHTML = '';
+            for (let i = 0; i < totalPages; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.className = 'page-link';
+                pageButton.textContent = i + 1;
+                pageButton.addEventListener('click', function() {
+                    fetchPosts(i);
+                });
+                pagination.appendChild(pageButton);
+            }
+        }
+
 
     </script>
 </div>

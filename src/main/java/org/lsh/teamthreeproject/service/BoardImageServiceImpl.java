@@ -13,7 +13,7 @@ import java.util.UUID;
 @Service
 public class BoardImageServiceImpl implements BoardImageService {
 
-    private final String UPLOAD_DIR = "C:/src/SpringBoot/teamThreeProject/uploads"; // 파일이 저장될 경로
+    private final String UPLOAD_DIR = "D:/src/SpringBoot/teamThreeProject/uploads"; // 파일이 저장될 경로
 
     @Override
     public String storeFile(MultipartFile file) {

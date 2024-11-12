@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
 
     public String saveProfileImage(MultipartFile profileImage) throws IOException {
         if (profileImage != null && !profileImage.isEmpty()) {
-            String uploadDir = "c:\\upload";
+            String uploadDir = "D:\\upload";
             String fileName = profileImage.getOriginalFilename();
             Path uploadPath = Paths.get(uploadDir);
 
@@ -178,7 +178,7 @@ public class UserServiceImpl implements UserService {
         user.setProfileImage("/upload/noImage.jpg");
         // 기본 이미지 파일 경로와 업로드 경로 설정
         Path defaultImagePath = Paths.get("src/main/resources/static/images/noImage.jpg"); // 기본 이미지 위치
-        Path uploadDir = Paths.get("c:/upload");
+        Path uploadDir = Paths.get("D:/upload");
         Path uploadImagePath = uploadDir.resolve("noImage.jpg"); // 업로드 폴더에 저장될 경로
 
         try {
