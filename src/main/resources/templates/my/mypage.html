@@ -161,7 +161,6 @@
         document.addEventListener("DOMContentLoaded", function() {
             // userId를 hidden input에서 가져와 전역 변수로 설정
             userId = document.getElementById('userId').value;
-            console.log("Retrieved userId from hidden input:", userId);
 
             // collapseBookmarks 요소가 존재할 경우에만 이벤트 리스너 추가
             const collapseBookmarks = document.getElementById('collapseBookmarks');
@@ -176,8 +175,6 @@
 
         // 북마크 데이터를 가져오는 함수
         function fetchBookmarks(page) {
-            console.log("Fetching bookmarks for userId:", userId, "at page:", page);
-
             fetch(`/api/bookmarks/paged?userId=${userId}&page=${page}`)
                 .then(response => {
                     if (!response.ok) throw new Error('Network response was not ok');
@@ -225,14 +222,7 @@
             }
         }
 
-        // 아코디언 버튼 클릭 시에도 북마크 가져오기
-        document.getElementById('yourAccordionButtonId').addEventListener('click', function() {
-            const page = 0;
-            fetchBookmarks(page);
-        });
-
     </script>
-
 </div>
 
 
