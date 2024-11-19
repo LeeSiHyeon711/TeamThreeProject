@@ -181,7 +181,11 @@
             <td><a href="/read/${bookmark.boardId}">${bookmark.title}</a></td> <!-- 제목에 링크 추가 -->
             <td>${bookmark.userNickname}</td>
             <td>${new Date(bookmark.regDate).toLocaleDateString()}</td>
-            <td><button class="btn btn-danger btn-sm">삭제</button></td>
+            <td>
+                <form method="POST" action="/bookmarkDelete/${bookmark.userId}/${bookmark.boardId}">
+                    <button type="submit" class="btn btn-danger btn-sm">삭제</button>
+                </form>
+            </td>
         `;
                 bookmarkContainer.appendChild(bookmarkElement);
             });

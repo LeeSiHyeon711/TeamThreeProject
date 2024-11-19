@@ -38,7 +38,7 @@ public class User {
     @Column(name = "profile_image", length = 255)
     private String profileImage;
 
-    @Column(length = 20)
+    @Column(length = 20, unique = true)
     private String nickname;
 
     @Column(length = 255)
