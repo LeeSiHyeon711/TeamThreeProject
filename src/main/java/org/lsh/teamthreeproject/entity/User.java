@@ -67,6 +67,15 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<BoardLike> boardLikes;
 
+    @OneToMany(mappedBy = "reportedBy", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ReportedChatRoom> reportedChatRooms;
+
+    @OneToMany(mappedBy = "reportedBy", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ReportedReply> reportedReplies;
+
+    @OneToMany(mappedBy = "reportedUser", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ReportedBoard> reportedBoards;
+
     public User(Long userId) {
         this.userId = userId;
     }
