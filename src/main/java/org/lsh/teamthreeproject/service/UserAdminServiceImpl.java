@@ -1,23 +1,18 @@
 package org.lsh.teamthreeproject.service;
 
+import lombok.RequiredArgsConstructor;
 import org.lsh.teamthreeproject.dto.UserDTO;
-import org.lsh.teamthreeproject.entity.User;
 import org.lsh.teamthreeproject.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class UserAdminServiceImpl implements UserAdminService {
 
     private final UserRepository userRepository;
-
-    @Autowired
-    public UserAdminServiceImpl(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     // 모든 유저 조회
     @Override

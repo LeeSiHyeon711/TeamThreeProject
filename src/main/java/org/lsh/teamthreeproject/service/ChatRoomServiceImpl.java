@@ -1,22 +1,17 @@
 package org.lsh.teamthreeproject.service;
 
-import org.lsh.teamthreeproject.dto.ChatRoomDTO;
+import lombok.RequiredArgsConstructor;
 import org.lsh.teamthreeproject.entity.ChatRoom;
 import org.lsh.teamthreeproject.repository.ChatRoomRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ChatRoomServiceImpl implements ChatRoomService {
 
     private final ChatRoomRepository chatRoomRepository;
-
-    @Autowired
-    public ChatRoomServiceImpl(ChatRoomRepository chatRoomRepository) {
-        this.chatRoomRepository = chatRoomRepository;
-    }
 
     @Override
     public ChatRoom createChatRoom(String name) {

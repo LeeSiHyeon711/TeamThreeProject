@@ -1,12 +1,10 @@
 package org.lsh.teamthreeproject.controller;
 
-import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 import org.lsh.teamthreeproject.dto.ChatRoomDTO;
 import org.lsh.teamthreeproject.entity.ChatRoom;
 import org.lsh.teamthreeproject.service.ChatRoomService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,13 +12,10 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/chatroom")
+@RequiredArgsConstructor
 public class ChatRoomController {
-    private final ChatRoomService chatRoomService;
 
-    @Autowired
-    public ChatRoomController(ChatRoomService chatRoomService) {
-        this.chatRoomService = chatRoomService;
-    }
+    private final ChatRoomService chatRoomService;
 
     // 채팅방 생성
     @PostMapping("/create")

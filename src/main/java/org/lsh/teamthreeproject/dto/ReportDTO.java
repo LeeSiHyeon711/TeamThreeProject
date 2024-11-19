@@ -14,5 +14,5 @@ public class ReportDTO {
     private String type; // 신고 유형: "Board", "ChatRoom", "Reply"
     private String reason; // 신고 사유
     private LocalDateTime reportedDate; // 신고 일시
-    private String reportedUserName; // 신고된 사용자 이름
+    private String reportedUserName; // 신고한 사용자 이름
 }

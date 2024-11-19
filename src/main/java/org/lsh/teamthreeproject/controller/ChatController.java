@@ -1,6 +1,6 @@
 package org.lsh.teamthreeproject.controller;
 
-import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 import org.lsh.teamthreeproject.dto.ChatMessageDTO;
 import org.lsh.teamthreeproject.entity.ChatMessage;
 import org.lsh.teamthreeproject.entity.ChatRoom;
@@ -9,37 +9,25 @@ import org.lsh.teamthreeproject.repository.UserRepository;
 import org.lsh.teamthreeproject.service.ChatMessageService;
 import org.lsh.teamthreeproject.service.ChatRoomService;
 import org.lsh.teamthreeproject.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.Optional;
 
 @Controller
+@RequiredArgsConstructor
 public class ChatController {
 
     public final UserRepository userRepository;
     public final ChatRoomService chatRoomService;
     public final ChatMessageService chatMessageService;
     public final UserService userService;
-
-    @Autowired
-    public ChatController(UserRepository userRepository, ChatRoomService chatRoomService, ChatMessageService chatMessageService, UserService userService) {
-        this.userRepository = userRepository;
-        this.chatRoomService = chatRoomService;
-        this.chatMessageService = chatMessageService;
-        this.userService = userService;
-    }
 
     //채팅방 입장
     @GetMapping("/chat")

@@ -27,6 +27,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Log4j2
 public class ReplyController {
+
     private final ReplyService replyService;
     private final BoardService boardService;
     private final UserService userService;

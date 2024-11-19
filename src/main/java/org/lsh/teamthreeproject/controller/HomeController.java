@@ -1,6 +1,7 @@
 package org.lsh.teamthreeproject.controller;
 
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 import org.lsh.teamthreeproject.dto.BoardDTO;
 import org.lsh.teamthreeproject.dto.BookmarkDTO;
 import org.lsh.teamthreeproject.dto.ReplyDTO;
@@ -10,28 +11,20 @@ import org.lsh.teamthreeproject.service.BoardService;
 import org.lsh.teamthreeproject.service.BookMarkService;
 import org.lsh.teamthreeproject.service.ChatRoomService;
 import org.lsh.teamthreeproject.service.ReplyService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
-import java.util.Optional;
 
 @Controller
+@RequiredArgsConstructor
 public class HomeController {
+
     public final ChatRoomService chatRoomService;
     public final BoardService boardService;
     public final ReplyService replyService;
     public final BookMarkService bookmarkService;
-    @Autowired
-    public HomeController(ChatRoomService chatRoomService, BoardService boardService, ReplyService replyService, BookMarkService bookmarkService) {
-        this.chatRoomService = chatRoomService;
-        this.boardService = boardService;
-        this.replyService = replyService;
-        this.bookmarkService = bookmarkService;
-    }
 
     // 채팅방 리스트 페이지 입장
     @GetMapping("/chatList")

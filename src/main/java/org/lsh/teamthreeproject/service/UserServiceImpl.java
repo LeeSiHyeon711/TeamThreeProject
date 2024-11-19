@@ -1,11 +1,10 @@
 package org.lsh.teamthreeproject.service;
 
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 import org.lsh.teamthreeproject.dto.UserDTO;
 import org.lsh.teamthreeproject.entity.User;
 import org.lsh.teamthreeproject.repository.UserRepository;
-import org.lsh.teamthreeproject.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,14 +14,10 @@ import java.nio.file.*;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-
-    @Autowired
-    public UserServiceImpl(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     @Override
     public UserDTO login(UserDTO userDTO, HttpSession session) {

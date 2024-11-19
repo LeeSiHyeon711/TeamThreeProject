@@ -1,9 +1,9 @@
 package org.lsh.teamthreeproject.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.lsh.teamthreeproject.dto.ReportDTO;
 import org.lsh.teamthreeproject.service.ReportService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,14 +14,10 @@ import java.util.List;
 @Log4j2
 @Controller
 @RequestMapping("/reports")
+@RequiredArgsConstructor
 public class ReportController {
 
     private final ReportService reportService;
-
-    @Autowired
-    public ReportController(ReportService reportService) {
-        this.reportService = reportService;
-    }
 
     @GetMapping("/all") // /reports/all 경로로 들어오는 GET 요청을 처리
     public String getAllReports(Model model, @RequestParam(required = false) String type) {

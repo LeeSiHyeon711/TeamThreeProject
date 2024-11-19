@@ -1,28 +1,23 @@
 package org.lsh.teamthreeproject.service;
 
+import lombok.RequiredArgsConstructor;
 import org.lsh.teamthreeproject.dto.ChatMessageDTO;
 import org.lsh.teamthreeproject.entity.ChatMessage;
 import org.lsh.teamthreeproject.repository.ChatMessageRepository;
 import org.lsh.teamthreeproject.repository.ChatRoomRepository;
 import org.lsh.teamthreeproject.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ChatMessageServiceImpl implements ChatMessageService {
+
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final UserRepository userRepository;
-
-    @Autowired
-    public ChatMessageServiceImpl(ChatMessageRepository chatMessageRepository, ChatRoomRepository chatRoomRepository, UserRepository userRepository) {
-        this.chatMessageRepository = chatMessageRepository;
-        this.chatRoomRepository = chatRoomRepository;
-        this.userRepository = userRepository;
-    }
 
     @Override
     public List<ChatMessageDTO> findMessagesByChatRoomId(Long chatRoomId) {

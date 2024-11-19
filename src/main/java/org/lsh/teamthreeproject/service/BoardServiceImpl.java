@@ -197,8 +197,8 @@ public class BoardServiceImpl implements BoardService {
         Board existingBoard = boardRepository.findById(boardDTO.getBoardId())
                 .orElseThrow(() -> new RuntimeException("Board not found: " + boardDTO.getBoardId()));
 
-        // 새로운 파일이 첨부되지 않았을 경우 기존 이미지 유지
-        if (boardDTO.getFiles() == null || boardDTO.getFiles().isEmpty()) {
+        // 새로운 이미지가 첨부되지 않았을 경우 기존 이미지 유지
+        if (boardDTO.getImages() == null || boardDTO.getImages().isEmpty()) {
             // 기존 이미지를 유지하기 위해 현재 이미지들을 DTO에 설정
             List<BoardImageDTO> existingImageDTOs = existingBoard.getBoardImages().stream()
                     .map(image -> BoardImageDTO.builder()

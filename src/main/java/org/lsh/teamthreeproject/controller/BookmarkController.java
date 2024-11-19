@@ -47,6 +47,7 @@ public class BookmarkController {
         return "/my/myBookmarkList";
     }
 
+    // 북마크 삭제
     @PostMapping("/bookmarkDelete/{userId}/{boardId}")
     @Transactional
     public String deleteBookmark(@PathVariable("userId") Long userId,

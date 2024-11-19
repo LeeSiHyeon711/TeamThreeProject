@@ -104,6 +104,9 @@ public class BoardController {
                 board.setIsLiked(boardService.isLikedByUser(board.getBoardId(), loggedInUser.getUserId()));
                 board.setIsBookmarked(boardService.isBookmarkedByUser(board.getBoardId(), loggedInUser.getUserId()));
             });
+        }else {
+            //로그인 정보가 없으면 로그인 페이지로 리다이렉트
+            return "redirect:/user/login";
         }
 
         model.addAttribute("loggedInUser", loggedInUser);

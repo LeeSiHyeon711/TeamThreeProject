@@ -62,13 +62,6 @@ public class BookMarkServiceImpl implements BookMarkService {
 
     private BookmarkDTO convertEntityToDTO(BookMark bookmark) {
 
-        // 필드 값 확인 출력
-        System.out.println("Board ID: " + (bookmark.getBoard() != null ? bookmark.getBoard().getBoardId() : "null"));
-        System.out.println("User ID: " + (bookmark.getUser() != null ? bookmark.getUser().getUserId() : "null"));
-        System.out.println("Title: " + (bookmark.getBoard() != null ? bookmark.getBoard().getTitle() : "null"));
-        System.out.println("Content: " + (bookmark.getBoard() != null ? bookmark.getBoard().getContent() : "null"));
-        System.out.println("Nickname: " + (bookmark.getUser() != null ? bookmark.getUser().getNickname() : "null"));
-
         return BookmarkDTO.builder()
                 .boardId(bookmark.getBoard().getBoardId())
                 .userId(bookmark.getUser().getUserId())

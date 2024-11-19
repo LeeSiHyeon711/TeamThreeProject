@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 public class ReplyServiceImpl implements ReplyService {
+
     private final ReplyRepository replyRepository;
     private final BoardServiceImpl boardServiceImpl;
     private final UserService userService;

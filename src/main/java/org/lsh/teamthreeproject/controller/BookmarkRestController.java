@@ -1,5 +1,6 @@
 package org.lsh.teamthreeproject.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.lsh.teamthreeproject.dto.BookmarkDTO;
 import org.lsh.teamthreeproject.service.BookMarkService;
 import org.springframework.data.domain.Page;
@@ -12,12 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/bookmarks")
+@RequiredArgsConstructor
 public class BookmarkRestController {
-    private final BookMarkService bookMarkService;
 
-    public BookmarkRestController(BookMarkService bookMarkService) {
-        this.bookMarkService = bookMarkService;
-    }
+    private final BookMarkService bookMarkService;
 
     @GetMapping("/paged")
     public Page<BookmarkDTO> getPagedBookmarkList(

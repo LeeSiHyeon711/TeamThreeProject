@@ -101,20 +101,16 @@ public class ReportServiceImpl implements ReportService {
     // 신고 저장 메서드
     @Override
     public void saveReport(ReportDTO reportDTO) {
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!!Received report data: {}", reportDTO); // 추가된 로그
 
         String reportType = reportDTO.getType();
         String reason = reportDTO.getReason();
         String reportedUserName = reportDTO.getReportedUserName();
-
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!!Report Type: {}, Reason: {}, Reported User: {}", reportType, reason, reportedUserName);
 
         User reportedUser = userRepository.findByNickname(reportedUserName)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
 
         switch (reportType) {
             case "Board":
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!Processing Board report"); // 추가된 로그
                 Board board = boardRepository.findById(reportDTO.getReportId())
                         .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
                 ReportedBoard boardReport = ReportedBoard.builder()
@@ -127,7 +123,6 @@ public class ReportServiceImpl implements ReportService {
                 break;
 
             case "ChatRoom":
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!!!Processing ChatRoom report"); // 추가된 로그
                 ChatRoom chatRoom = chatRoomRepository.findByChatRoomId(reportDTO.getReportId())
                         .orElseThrow(() -> {
                             log.error("해당 채팅방이 존재하지 않습니다. 요청된 채팅방 ID: " + reportDTO.getReportId());
@@ -143,7 +138,6 @@ public class ReportServiceImpl implements ReportService {
                 break;
 
             case "Reply":
-                log.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Processing Reply report"); // 추가된 로그
                 Reply reply = replyRepository.findById(reportDTO.getReportId())
                         .orElseThrow(() -> new IllegalArgumentException("해당 댓글이 존재하지 않습니다."));
                 ReportedReply replyReport = ReportedReply.builder()
@@ -156,7 +150,6 @@ public class ReportServiceImpl implements ReportService {
                 break;
 
             default:
-                log.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Invalid report type: " + reportType); // 추가된 로그
                 throw new IllegalArgumentException("Invalid report type: " + reportType);
         }
     }

@@ -18,3 +18,5 @@ public class TomcatConfig {
         return factory;
     }
 }
+// ISO -> UTF8 변환 설정 파일입니다. 지우지마세요!!!!!!!!!!!!!!!!!!!!!
+// (한글 깨짐 문제 관련)

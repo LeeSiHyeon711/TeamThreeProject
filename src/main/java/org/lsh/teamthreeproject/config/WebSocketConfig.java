@@ -7,7 +7,7 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
 @Configuration
-@EnableWebSocketMessageBroker
+@EnableWebSocketMessageBroker // STOMP프로토몰 => 메세지 브로커 설정 메서드 제공
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
@@ -22,6 +22,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // 클라이언트가 소켓을 연결할 수 있는 엔드포인트 설정
         registry.addEndpoint("/ws")  // "/ws" 엔드포인트로 소켓 연결
                 .setAllowedOriginPatterns("*") //모든 도메인을 허용
-                .withSockJS();  // SockJS 사용
+                .withSockJS();  // WebSocket 기능 연결 실패 시 SockJS 사용
+        //SockJS : HTTP 기반 풀백 라이브 러리
     }
 }

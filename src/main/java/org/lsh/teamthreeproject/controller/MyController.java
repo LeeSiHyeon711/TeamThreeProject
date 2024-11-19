@@ -15,6 +15,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Log4j2
 public class MyController {
+
     private final UserService userService;
 
     // 테스트
@@ -53,6 +54,7 @@ public class MyController {
         return "redirect:/profile/" + userId;
     }
 
+    // 회원 탈퇴 처리
     @PostMapping("/delete")
     public String deleteUser(HttpSession session) {
         log.info("delete");

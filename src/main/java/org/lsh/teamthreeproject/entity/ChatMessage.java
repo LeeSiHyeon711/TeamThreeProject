@@ -44,6 +44,6 @@ public class ChatMessage {
                 "messageId=" + messageId +
                 ", content='" + content + '\'' +
                 ", sender='" + sender + '\'' +
-                '}';
+                '}'; // 순환 참조 문제 때문에 chatRoom 을 toString 제거함
     }
 }

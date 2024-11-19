@@ -1,5 +1,6 @@
 package org.lsh.teamthreeproject.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.lsh.teamthreeproject.dto.BoardDTO;
 import org.lsh.teamthreeproject.service.BoardService;
 import org.springframework.data.domain.Page;
@@ -12,12 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/boards")
+@RequiredArgsConstructor
 public class BoardRestController {
-    private final BoardService boardService;
 
-    public BoardRestController(BoardService boardService) {
-        this.boardService = boardService;
-    }
+    private final BoardService boardService;
 
     @GetMapping("/paged")
     public Page<BoardDTO> getPagedBoardList(
