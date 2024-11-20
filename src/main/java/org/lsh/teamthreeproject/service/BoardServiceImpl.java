@@ -228,31 +228,17 @@ public class BoardServiceImpl implements BoardService {
             }
             boardDTO.setImages(newImages); // BoardDTO에 새 이미지 정보 설정
 
-        // 새로운 파일이 첨부되지 않았을 경우 기존 이미지 유지
-        if (boardDTO.getFileNames() == null || boardDTO.getFileNames().isEmpty()) {
-            // 기존 이미지를 유지하기 위해 현재 이미지들을 DTO에 설정
-            List<BoardImageDTO> existingImageDTOs = existingBoard.getBoardImages().stream()
-                    .map(image -> BoardImageDTO.builder()
-                            .boardId(existingBoard.getBoardId())
-                            .imageUrl(image.getImageUrl())
-                            .build())
-                    .collect(Collectors.toList());
-            boardDTO.setImages(existingImageDTOs);
-        } else {
-            // 기존 이미지 삭제 로직
-            List<BoardImage> existingImages = boardImageRepository.findByBoard_BoardId(boardDTO.getBoardId());
-            if (existingImages != null && !existingImages.isEmpty()) {
-                for (BoardImage image : existingImages) {
-                    // 파일 삭제 로직 추가 (파일 시스템에서 파일 삭제)
-                    String filePath = uploadPath + "/" + image.getImageUrl();
-                    File file = new File(filePath);
-                    if (file.exists()) {
-                        file.delete();  // 실제 파일 삭제
-                    }
-                }
-                boardImageRepository.deleteAll(existingImages); // 데이터베이스에서 기존 이미지 삭제
+            // 새로운 파일이 첨부되지 않았을 경우 기존 이미지 유지
+            if (boardDTO.getFileNames() == null || boardDTO.getFileNames().isEmpty()) {
+                // 기존 이미지를 유지하기 위해 현재 이미지들을 DTO에 설정
+                List<BoardImageDTO> existingImageDTOs = existingBoard.getBoardImages().stream()
+                        .map(image -> BoardImageDTO.builder()
+                                .boardId(existingBoard.getBoardId())
+                                .imageUrl(image.getImageUrl())
+                                .build())
+                        .collect(Collectors.toList());
+                boardDTO.setImages(existingImageDTOs);
             }
-        }
         }
 
         // 게시글 정보 업데이트
