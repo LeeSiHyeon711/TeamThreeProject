@@ -197,8 +197,39 @@ public class BoardServiceImpl implements BoardService {
         Board existingBoard = boardRepository.findById(boardDTO.getBoardId())
                 .orElseThrow(() -> new RuntimeException("Board not found: " + boardDTO.getBoardId()));
 
-        // 새로운 이미지가 첨부되지 않았을 경우 기존 이미지 유지
-        if (boardDTO.getImages() == null || boardDTO.getImages().isEmpty()) {
+        // 새로운 파일이 존재할 경우 경로를 설정하여 저장
+        List<BoardImageDTO> newImages = new ArrayList<>();
+        if (boardDTO.getFiles() != null && !boardDTO.getFiles().isEmpty()) {
+            for (MultipartFile file : boardDTO.getFiles()) {
+                if (!file.isEmpty()) {
+                    try {
+                        String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+                        String filePath = uploadPath + "/" + fileName;
+                        file.transferTo(new File(filePath));
+
+                        // 새로운 `BoardImage` 엔티티 생성 후 저장
+                        BoardImage newBoardImage = BoardImage.builder()
+                                .board(existingBoard)
+                                .imageUrl(fileName)
+                                .build();
+                        boardImageRepository.save(newBoardImage);
+
+                        // 새로운 BoardImageDTO 추가
+                        BoardImageDTO imageDTO = BoardImageDTO.builder()
+                                .boardId(existingBoard.getBoardId())
+                                .imageUrl(fileName)
+                                .build();
+                        newImages.add(imageDTO);
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            boardDTO.setImages(newImages); // BoardDTO에 새 이미지 정보 설정
+
+        // 새로운 파일이 첨부되지 않았을 경우 기존 이미지 유지
+        if (boardDTO.getFileNames() == null || boardDTO.getFileNames().isEmpty()) {
             // 기존 이미지를 유지하기 위해 현재 이미지들을 DTO에 설정
             List<BoardImageDTO> existingImageDTOs = existingBoard.getBoardImages().stream()
                     .map(image -> BoardImageDTO.builder()
@@ -221,38 +252,7 @@ public class BoardServiceImpl implements BoardService {
                 }
                 boardImageRepository.deleteAll(existingImages); // 데이터베이스에서 기존 이미지 삭제
             }
-
-            // 새로운 파일이 존재할 경우 경로를 설정하여 저장
-            List<BoardImageDTO> newImages = new ArrayList<>();
-            if (boardDTO.getFiles() != null && !boardDTO.getFiles().isEmpty()) {
-                for (MultipartFile file : boardDTO.getFiles()) {
-                    if (!file.isEmpty()) {
-                        try {
-                            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-                            String filePath = uploadPath + "/" + fileName;
-                            file.transferTo(new File(filePath));
-
-                            // 새로운 `BoardImage` 엔티티 생성 후 저장
-                            BoardImage newBoardImage = BoardImage.builder()
-                                    .board(existingBoard)
-                                    .imageUrl(fileName)
-                                    .build();
-                            boardImageRepository.save(newBoardImage);
-
-                            // 새로운 BoardImageDTO 추가
-                            BoardImageDTO imageDTO = BoardImageDTO.builder()
-                                    .boardId(existingBoard.getBoardId())
-                                    .imageUrl(fileName)
-                                    .build();
-                            newImages.add(imageDTO);
-
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-                boardDTO.setImages(newImages); // BoardDTO에 새 이미지 정보 설정
-            }
+        }
         }
 
         // 게시글 정보 업데이트
